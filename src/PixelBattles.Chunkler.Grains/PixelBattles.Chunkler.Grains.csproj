@@ -9,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PixelBattles.Server.Grains.Abstractions\PixelBattles.Server.Grains.Abstractions.csproj" />
+    <ProjectReference Include="..\PixelBattles.Chunkler.Grains.Abstractions\PixelBattles.Chunkler.Grains.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>
