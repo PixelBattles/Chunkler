@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Orleans.Server" Version="2.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\PixelBattles.Chunkler.Grains\PixelBattles.Chunkler.Grains.csproj" />
   </ItemGroup>
 
