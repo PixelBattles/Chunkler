@@ -1,4 +1,4 @@
-﻿namespace PixelBattles.Server.Grains
+﻿namespace PixelBattles.Chunkler.Grains
 {
     public class ChunkState
     {
