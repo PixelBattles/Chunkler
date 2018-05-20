@@ -1,8 +1,10 @@
 ﻿using Orleans;
+using Orleans.Providers;
 using System.Threading.Tasks;
 
 namespace PixelBattles.Chunkler.Grains
 {
+    [StorageProvider(ProviderName = "MemoryStore")]
     public class ChunkGrain : Grain<ChunkGrainState>, IChunkGrain
     {
         private readonly GrainObserverManager<IChunkObserver> observers = new GrainObserverManager<IChunkObserver>();

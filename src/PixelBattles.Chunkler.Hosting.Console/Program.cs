@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
+using Orleans;
 using Orleans.Configuration;
 using Orleans.Hosting;
+using PixelBattles.Chunkler.Grains;
 using System;
 using System.Net;
 using System.Threading.Tasks;
@@ -30,20 +32,17 @@ namespace PixelBattles.Chunkler.Hosting
 
         private static async Task<ISiloHost> StartSilo()
         {
-            var builder = new SiloHostBuilder()
-                // Use localhost clustering for a single local silo
+            var builder = new SiloHostBuilder() 
                 .UseLocalhostClustering()
-                // Configure ClusterId and ServiceId
                 .Configure<ClusterOptions>(options =>
                 {
                     options.ClusterId = "dev";
                     options.ServiceId = "MyAwesomeService";
                 })
-            // Configure connectivity
-            .Configure<EndpointOptions>(options => options.AdvertisedIPAddress = IPAddress.Loopback)
-                // Configure logging with any logging framework that supports Microsoft.Extensions.Logging.
-                // In this particular case it logs using the Microsoft.Extensions.Logging.Console package.
-                .ConfigureLogging(logging => logging.AddConsole());
+                .AddMemoryGrainStorage("MemoryStore")
+                .Configure<EndpointOptions>(options => options.AdvertisedIPAddress = IPAddress.Loopback)
+                .ConfigureLogging(logging => logging.AddConsole())
+                .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(ChunkGrain).Assembly).WithReferences());
 
             var host = builder.Build();
             await host.StartAsync();
