@@ -10,7 +10,7 @@ namespace PixelBattles.Chunkler.Client
     public class ChunklerClient : IChunklerClient
     {
         private IClusterClient clusterClient;
-
+        
         public ChunklerClient(Action<ILoggingBuilder> configureLogging)
         {
             clusterClient = new ClientBuilder()
@@ -41,8 +41,8 @@ namespace PixelBattles.Chunkler.Client
             var chunkAction = new ChunkAction
             {
                 Color = gameAction.Color,
-                X = gameAction.XIndex,
-                Y = gameAction.YIndex
+                XIndex = gameAction.XIndex,
+                YIndex = gameAction.YIndex
             };
             return chunk.ProcessActionAsync(chunkAction);
         }

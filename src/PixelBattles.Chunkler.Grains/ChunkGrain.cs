@@ -1,5 +1,10 @@
 ﻿using Orleans;
 using Orleans.Providers;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.PixelFormats;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace PixelBattles.Chunkler.Grains
@@ -14,7 +19,7 @@ namespace PixelBattles.Chunkler.Grains
             observers.Subscribe(observer);
             return Task.FromResult(0);
         }
-
+        
         public Task<ChunkState> GetStateAsync()
         {
             var chunkState = new ChunkState
@@ -30,6 +35,42 @@ namespace PixelBattles.Chunkler.Grains
             State.ChangeIndex++;
             await WriteStateAsync();
             return true;
+        }
+
+        private Rgba32[] GetPixelsFromBytes(byte[] imageArray)
+        {
+            Rgba32[] tempPixels = new Rgba32[Height * Width];
+            IImageDecoder imageDecoder = new PngDecoder()
+            {
+                IgnoreMetadata = true
+            };
+
+            var image = Image.Load(imageArray, imageDecoder);
+            for (int y = 0; y < Height; y++)
+            {
+                for (int x = 0; x < Width; x++)
+                {
+                    tempPixels[y * Width + x] = image[x, y];
+                }
+            }
+            return tempPixels;
+        }
+
+        private byte[] GetBytesFromPixels(Rgba32[] pixelArray)
+        {
+            byte[] byteArray;
+            using (MemoryStream stream = new MemoryStream())
+            {
+                var image = Image.LoadPixelData(pixelArray, Width, Height);
+                PngEncoder pngEncoder = new PngEncoder
+                {
+                    CompressionLevel = 9,
+                    PngColorType = PngColorType.RgbWithAlpha
+                };
+                image.SaveAsPng(stream, pngEncoder);
+                byteArray = stream.ToArray();
+            }
+            return byteArray;
         }
     }
 }
