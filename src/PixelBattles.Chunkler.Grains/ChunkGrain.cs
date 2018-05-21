@@ -12,8 +12,16 @@ namespace PixelBattles.Chunkler.Grains
     [StorageProvider(ProviderName = "MemoryStore")]
     public class ChunkGrain : Grain<ChunkGrainState>, IChunkGrain
     {
-        private readonly GrainObserverManager<IChunkObserver> observers = new GrainObserverManager<IChunkObserver>();
+        private int width;
 
+        private int height;
+
+        private Rgba32[] pixels;
+
+        private byte[] image;
+
+        private readonly GrainObserverManager<IChunkObserver> observers = new GrainObserverManager<IChunkObserver>();
+        
         public Task Subscribe(IChunkObserver observer)
         {
             observers.Subscribe(observer);
@@ -39,18 +47,18 @@ namespace PixelBattles.Chunkler.Grains
 
         private Rgba32[] GetPixelsFromBytes(byte[] imageArray)
         {
-            Rgba32[] tempPixels = new Rgba32[Height * Width];
+            Rgba32[] tempPixels = new Rgba32[height * width];
             IImageDecoder imageDecoder = new PngDecoder()
             {
                 IgnoreMetadata = true
             };
 
             var image = Image.Load(imageArray, imageDecoder);
-            for (int y = 0; y < Height; y++)
+            for (int x = 0; x < width; x++)
             {
-                for (int x = 0; x < Width; x++)
+                for (int y = 0; y < height; y++)
                 {
-                    tempPixels[y * Width + x] = image[x, y];
+                    tempPixels[x * height + y] = image[x, y];
                 }
             }
             return tempPixels;
@@ -61,7 +69,7 @@ namespace PixelBattles.Chunkler.Grains
             byte[] byteArray;
             using (MemoryStream stream = new MemoryStream())
             {
-                var image = Image.LoadPixelData(pixelArray, Width, Height);
+                var image = Image.LoadPixelData(pixelArray, width, height);
                 PngEncoder pngEncoder = new PngEncoder
                 {
                     CompressionLevel = 9,
