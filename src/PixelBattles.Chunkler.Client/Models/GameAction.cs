@@ -14,6 +14,6 @@ namespace PixelBattles.Chunkler.Client
 
         public int YIndex { get; set; }
 
-        public int Color { get; set; }
+        public uint Color { get; set; }
     }
 }

@@ -1,10 +1,13 @@
 ﻿using Orleans;
 using Orleans.Providers;
+using PixelBattles.Server.Client;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
+using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace PixelBattles.Chunkler.Grains
@@ -12,13 +15,48 @@ namespace PixelBattles.Chunkler.Grains
     [StorageProvider(ProviderName = "MemoryStore")]
     public class ChunkGrain : Grain<ChunkGrainState>, IChunkGrain
     {
+        private readonly IApiClient apiClient;
+        private Guid gameId;
         private int width;
-
         private int height;
-
         private Rgba32[] pixels;
 
-        private byte[] image;
+        public ChunkGrain(IApiClient apiClient)
+        {
+            this.apiClient = apiClient;
+        }
+
+        protected override async Task ReadStateAsync()
+        {
+            gameId = this.GetPrimaryKey(out string postfix);
+            var game = await apiClient.GetGameAsync(gameId);
+            //lets assume that chunks are square
+            this.width = game.ChunkSize;
+            this.height = game.ChunkSize;
+
+            await base.ReadStateAsync();
+        }
+
+        public override Task OnActivateAsync()
+        {
+            if (State == null)
+            {
+                pixels = Enumerable
+                    .Range(0, width * height)
+                    .Select(t => Rgba32.White)
+                    .ToArray();
+                State = new ChunkGrainState
+                {
+                    ChangeIndex = 0,
+                    Image = GetBytesFromPixels(pixels)
+                };
+            }
+            else
+            {
+                pixels = GetPixelsFromBytes(State.Image);
+            }
+            return base.OnActivateAsync();
+        }
 
         private readonly GrainObserverManager<IChunkObserver> observers = new GrainObserverManager<IChunkObserver>();
         
@@ -41,6 +79,8 @@ namespace PixelBattles.Chunkler.Grains
         public async Task<bool> ProcessActionAsync(ChunkAction action)
         {
             State.ChangeIndex++;
+            pixels[action.XIndex + action.YIndex * width].Rgba = action.Color;
+            State.Image = GetBytesFromPixels(pixels);
             await WriteStateAsync();
             return true;
         }

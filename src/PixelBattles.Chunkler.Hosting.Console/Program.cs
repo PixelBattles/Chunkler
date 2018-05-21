@@ -1,11 +1,13 @@
 ﻿using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Orleans.Hosting;
 using PixelBattles.Chunkler.Grains;
 using System;
 using System.Net;
 using System.Threading.Tasks;
+using PixelBattles.Server.Client;
 
 namespace PixelBattles.Chunkler.Hosting
 {
@@ -42,6 +44,7 @@ namespace PixelBattles.Chunkler.Hosting
                 .AddMemoryGrainStorage("MemoryStore")
                 .Configure<EndpointOptions>(options => options.AdvertisedIPAddress = IPAddress.Loopback)
                 .ConfigureLogging(logging => logging.AddConsole())
+                .ConfigureServices(c => c.AddApiClient(opt => opt.BaseUrl = "http://192.168.0.1:5000"))
                 .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(ChunkGrain).Assembly).WithReferences());
 
             var host = builder.Build();
