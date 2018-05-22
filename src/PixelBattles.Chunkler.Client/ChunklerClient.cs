@@ -35,21 +35,21 @@ namespace PixelBattles.Chunkler.Client
             await clusterClient.Close();
         }
 
-        public Task<bool> ProcessAction(GameAction gameAction)
+        public Task<bool> ProcessAction(BattleAction battleAction)
         {
-            var chunk = clusterClient.GetGrain<IChunkGrain>(gameAction.GameId, FormatClusterKeyExtension(gameAction), null);
+            var chunk = clusterClient.GetGrain<IChunkGrain>(battleAction.BattleId, FormatClusterKeyExtension(battleAction), null);
             var chunkAction = new ChunkAction
             {
-                Color = gameAction.Color,
-                XIndex = gameAction.XIndex,
-                YIndex = gameAction.YIndex
+                Color = battleAction.Color,
+                XIndex = battleAction.XIndex,
+                YIndex = battleAction.YIndex
             };
             return chunk.ProcessActionAsync(chunkAction);
         }
 
-        private string FormatClusterKeyExtension(GameAction gameAction)
+        private string FormatClusterKeyExtension(BattleAction battleAction)
         {
-            return $"{gameAction.ChunkXIndex}:{gameAction.ChunkYIndex}";
+            return $"{battleAction.ChunkXIndex}:{battleAction.ChunkYIndex}";
         }
         
         public void Dispose()

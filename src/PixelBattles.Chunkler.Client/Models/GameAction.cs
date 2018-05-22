@@ -2,9 +2,9 @@
 
 namespace PixelBattles.Chunkler.Client
 {
-    public class GameAction
+    public class BattleAction
     {
-        public Guid GameId { get; set; }
+        public Guid BattleId { get; set; }
 
         public int ChunkXIndex { get; set; }
 

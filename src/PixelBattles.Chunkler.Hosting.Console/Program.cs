@@ -44,7 +44,7 @@ namespace PixelBattles.Chunkler.Hosting
                 .AddMemoryGrainStorage("MemoryStore")
                 .Configure<EndpointOptions>(options => options.AdvertisedIPAddress = IPAddress.Loopback)
                 .ConfigureLogging(logging => logging.AddConsole())
-                .ConfigureServices(c => c.AddApiClient(opt => opt.BaseUrl = "http://192.168.0.1:5000"))
+                .ConfigureServices(c => c.AddApiClient(opt => opt.BaseUrl = "http://localhost:5000"))
                 .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(ChunkGrain).Assembly).WithReferences());
 
             var host = builder.Build();

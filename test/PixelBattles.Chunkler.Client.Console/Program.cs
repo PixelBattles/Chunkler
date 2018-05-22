@@ -16,9 +16,9 @@ namespace PixelBattles.Chunkler.Client
             Console.WriteLine("Starting...");
             ChunklerClient chunklerClient = new ChunklerClient(cfg => cfg.AddConsole());
             await chunklerClient.Connect();
-            GameAction gameAction = new GameAction
+            BattleAction gameAction = new BattleAction
             {
-                GameId = Guid.NewGuid(),
+                BattleId = Guid.Parse("88d311d3-34bb-4584-9e6f-165e966d7cf7"),
                 ChunkXIndex = 0,
                 ChunkYIndex = 0,
                 XIndex = 0,

@@ -7,6 +7,6 @@ namespace PixelBattles.Chunkler.Client
     {
         Task Connect();
         Task Close();
-        Task<bool> ProcessAction(GameAction gameAction);
+        Task<bool> ProcessAction(BattleAction gameAction);
     }
 }

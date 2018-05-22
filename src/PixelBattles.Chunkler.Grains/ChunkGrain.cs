@@ -16,7 +16,7 @@ namespace PixelBattles.Chunkler.Grains
     public class ChunkGrain : Grain<ChunkGrainState>, IChunkGrain
     {
         private readonly IApiClient apiClient;
-        private Guid gameId;
+        private Guid battleId;
         private int width;
         private int height;
         private Rgba32[] pixels;
@@ -28,11 +28,10 @@ namespace PixelBattles.Chunkler.Grains
 
         protected override async Task ReadStateAsync()
         {
-            gameId = this.GetPrimaryKey(out string postfix);
-            var game = await apiClient.GetGameAsync(gameId);
-            //lets assume that chunks are square
-            this.width = game.ChunkSize;
-            this.height = game.ChunkSize;
+            battleId = this.GetPrimaryKey(out string postfix);
+            var battle = await apiClient.GetBattleAsync(battleId);
+            this.width = battle.Settings.ChunkWidth;
+            this.height = battle.Settings.ChunkHeight;
 
             await base.ReadStateAsync();
         }
