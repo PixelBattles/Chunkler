@@ -18,11 +18,14 @@ namespace PixelBattles.Chunkler.Client
             await chunklerClient.Connect();
             BattleAction gameAction = new BattleAction
             {
-                BattleId = Guid.Parse("88d311d3-34bb-4584-9e6f-165e966d7cf7"),
-                ChunkXIndex = 0,
-                ChunkYIndex = 0,
-                XIndex = 0,
-                YIndex = 0,
+                Key = new ChunkKey
+                {
+                    BattleId = Guid.Parse("88d311d3-34bb-4584-9e6f-165e966d7cf7"),
+                    ChunkXIndex = 0,
+                    ChunkYIndex = 0,
+                },
+                WidthIndex = 0,
+                HeightIndex = 0,
                 Color = 2465474
             };
             await chunklerClient.ProcessAction(gameAction);
