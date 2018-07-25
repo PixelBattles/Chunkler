@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Orleans.OrleansCodeGenerator.Build" Version="2.0.0" />
-    <PackageReference Include="PixelBattles.Server.Client.Abstractions" Version="0.1.1-CI-20180522-201623" />
+    <PackageReference Include="PixelBattles.Server.Client.Abstractions" Version="0.1.1-CI-20180725-224224" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0003" />
   </ItemGroup>
 

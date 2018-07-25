@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace PixelBattles.Chunkler.Client
@@ -28,7 +29,15 @@ namespace PixelBattles.Chunkler.Client
                 HeightIndex = 0,
                 Color = 2465474
             };
-            await chunklerClient.ProcessAction(gameAction);
+            Stopwatch stopWatch = new Stopwatch();
+            stopWatch.Start();
+            for (int i = 0; i < 10000; i++)
+            {
+                await chunklerClient.ProcessAction(gameAction);
+            }
+            stopWatch.Stop();
+            Console.WriteLine(stopWatch.Elapsed);
+            Console.ReadKey();
         }
     }
 }
