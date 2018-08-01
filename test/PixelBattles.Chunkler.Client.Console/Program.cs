@@ -34,6 +34,7 @@ namespace PixelBattles.Chunkler.Client
             for (int i = 0; i < 10000; i++)
             {
                 await chunklerClient.ProcessAction(gameAction);
+                await chunklerClient.GetChunkState(gameAction.Key.BattleId, gameAction.Key.ChunkXIndex, gameAction.Key.ChunkYIndex);
             }
             stopWatch.Stop();
             Console.WriteLine(stopWatch.Elapsed);

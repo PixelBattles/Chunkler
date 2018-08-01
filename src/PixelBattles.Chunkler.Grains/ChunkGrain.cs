@@ -15,49 +15,51 @@ namespace PixelBattles.Chunkler.Grains
     [StorageProvider(ProviderName = "MemoryStore")]
     public class ChunkGrain : Grain<ChunkGrainState>, IChunkGrain
     {
-        private readonly IApiClient apiClient;
-        private Guid battleId;
-        private int width;
-        private int height;
-        private Rgba32[] pixels;
+        private readonly IApiClient _apiClient;
+        private readonly GrainObserverManager<IChunkObserver> observers = new GrainObserverManager<IChunkObserver>();
+
+        private Guid _battleId;
+        private int _chunkWidth;
+        private int _chunkHeight;
+        private Rgba32[] _pixelsCache;
 
         public ChunkGrain(IApiClient apiClient)
         {
-            this.apiClient = apiClient;
+            _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
         }
-
+        
         protected override async Task ReadStateAsync()
         {
-            battleId = this.GetPrimaryKey(out string postfix);
-            var battle = await apiClient.GetBattleAsync(battleId);
-            this.width = battle.Settings.ChunkWidth;
-            this.height = battle.Settings.ChunkHeight;
+            _battleId = this.GetPrimaryKey(out string postfix);
+            var battle = await _apiClient.GetBattleAsync(_battleId);
+            _chunkWidth = battle.Settings.ChunkWidth;
+            _chunkHeight = battle.Settings.ChunkHeight;
 
             await base.ReadStateAsync();
         }
 
-        public override Task OnActivateAsync()
+        public override async Task OnActivateAsync()
         {
-            if (State == null)
+            if (State.Image == null)
             {
-                pixels = Enumerable
-                    .Range(0, width * height)
+                _pixelsCache = Enumerable
+                    .Range(0, _chunkWidth * _chunkHeight)
                     .Select(t => Rgba32.White)
                     .ToArray();
+
                 State = new ChunkGrainState
                 {
                     ChangeIndex = 0,
-                    Image = GetBytesFromPixels(pixels)
+                    Image = GetBytesFromPixels(_pixelsCache)
                 };
+                await WriteStateAsync();
             }
             else
             {
-                pixels = GetPixelsFromBytes(State.Image);
+                _pixelsCache = GetPixelsFromBytes(State.Image);
             }
-            return base.OnActivateAsync();
+            await base.OnActivateAsync();
         }
-
-        private readonly GrainObserverManager<IChunkObserver> observers = new GrainObserverManager<IChunkObserver>();
         
         public Task Subscribe(IChunkObserver observer)
         {
@@ -69,35 +71,35 @@ namespace PixelBattles.Chunkler.Grains
         {
             var chunkState = new ChunkState
             {
-                ChangeIndex = State.ChangeIndex
+                ChangeIndex = State.ChangeIndex,
+                Image = State.Image
             };
-
             return Task.FromResult(chunkState);
         }
 
         public async Task<bool> ProcessActionAsync(ChunkAction action)
         {
             State.ChangeIndex++;
-            pixels[action.XIndex + action.YIndex * width].Rgba = action.Color;
-            State.Image = GetBytesFromPixels(pixels);
+            _pixelsCache[action.XIndex + action.YIndex * _chunkWidth].Rgba = action.Color;
+            State.Image = GetBytesFromPixels(_pixelsCache);
             await WriteStateAsync();
             return true;
         }
 
         private Rgba32[] GetPixelsFromBytes(byte[] imageArray)
         {
-            Rgba32[] tempPixels = new Rgba32[height * width];
+            Rgba32[] tempPixels = new Rgba32[_chunkHeight * _chunkWidth];
             IImageDecoder imageDecoder = new PngDecoder()
             {
                 IgnoreMetadata = true
             };
 
             var image = Image.Load(imageArray, imageDecoder);
-            for (int x = 0; x < width; x++)
+            for (int x = 0; x < _chunkWidth; x++)
             {
-                for (int y = 0; y < height; y++)
+                for (int y = 0; y < _chunkHeight; y++)
                 {
-                    tempPixels[x * height + y] = image[x, y];
+                    tempPixels[x * _chunkHeight + y] = image[x, y];
                 }
             }
             return tempPixels;
@@ -108,7 +110,7 @@ namespace PixelBattles.Chunkler.Grains
             byte[] byteArray;
             using (MemoryStream stream = new MemoryStream())
             {
-                var image = Image.LoadPixelData(pixelArray, width, height);
+                var image = Image.LoadPixelData(pixelArray, _chunkWidth, _chunkHeight);
                 PngEncoder pngEncoder = new PngEncoder
                 {
                     CompressionLevel = 9,

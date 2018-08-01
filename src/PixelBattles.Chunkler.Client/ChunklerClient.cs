@@ -47,11 +47,22 @@ namespace PixelBattles.Chunkler.Client
             return chunk.ProcessActionAsync(chunkAction);
         }
 
+        public Task<ChunkState> GetChunkState(Guid battleId, int x, int y)
+        {
+            var chunk = clusterClient.GetGrain<IChunkGrain>(battleId, FormatClusterKeyExtension(x, y), null);
+            return chunk.GetStateAsync();
+        }
+
         private string FormatClusterKeyExtension(BattleAction battleAction)
         {
             return $"{battleAction.Key.ChunkXIndex}:{battleAction.Key.ChunkYIndex}";
         }
-        
+
+        private string FormatClusterKeyExtension(int chunkXIndex, int chunkYIndex)
+        {
+            return $"{chunkXIndex}:{chunkYIndex}";
+        }
+
         public Task Subscribe(ChunkKey key, Action<ChunkUpdate> onUpdate)
         {
             throw new NotImplementedException();
