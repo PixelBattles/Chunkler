@@ -1,6 +1,6 @@
 ﻿using Orleans;
 
-namespace PixelBattles.Chunkler.Grains
+namespace PixelBattles.Chunkler
 {
     public interface IChunkObserver : IGrainObserver
     {

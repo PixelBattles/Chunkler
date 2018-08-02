@@ -1,11 +1,11 @@
 ﻿using Orleans;
 using System.Threading.Tasks;
 
-namespace PixelBattles.Chunkler.Grains
+namespace PixelBattles.Chunkler
 {
     public interface IChunkGrain : IGrainWithGuidCompoundKey
     {
-        Task<bool> ProcessActionAsync(ChunkAction action);
+        Task<int> ProcessActionAsync(ChunkAction action);
 
         Task<ChunkState> GetStateAsync();
 

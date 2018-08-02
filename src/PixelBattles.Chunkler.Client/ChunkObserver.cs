@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using PixelBattles.Chunkler.Grains;
 using System;
 
 namespace PixelBattles.Chunkler.Client

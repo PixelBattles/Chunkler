@@ -77,13 +77,13 @@ namespace PixelBattles.Chunkler.Grains
             return Task.FromResult(chunkState);
         }
 
-        public async Task<bool> ProcessActionAsync(ChunkAction action)
+        public async Task<int> ProcessActionAsync(ChunkAction action)
         {
             State.ChangeIndex++;
             _pixelsCache[action.XIndex + action.YIndex * _chunkWidth].Rgba = action.Color;
             State.Image = GetBytesFromPixels(_pixelsCache);
             await WriteStateAsync();
-            return true;
+            return State.ChangeIndex;
         }
 
         private Rgba32[] GetPixelsFromBytes(byte[] imageArray)

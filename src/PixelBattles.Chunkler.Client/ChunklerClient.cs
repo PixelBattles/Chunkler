@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Configuration;
-using PixelBattles.Chunkler.Grains;
 using System;
 using System.Threading.Tasks;
 
@@ -35,34 +34,23 @@ namespace PixelBattles.Chunkler.Client
             await clusterClient.Close();
         }
 
-        public Task<bool> ProcessAction(BattleAction action)
+        public Task<int> ProcessAction(ChunkKey key, ChunkAction action)
         {
-            var chunk = clusterClient.GetGrain<IChunkGrain>(action.Key.BattleId, FormatClusterKeyExtension(action), null);
-            var chunkAction = new ChunkAction
-            {
-                Color = action.Color,
-                XIndex = action.WidthIndex,
-                YIndex = action.HeightIndex
-            };
-            return chunk.ProcessActionAsync(chunkAction);
+            var chunk = clusterClient.GetGrain<IChunkGrain>(key.BattleId, FormatClusterKeyExtension(key), null);
+            return chunk.ProcessActionAsync(action);
         }
 
-        public Task<ChunkState> GetChunkState(Guid battleId, int x, int y)
+        public Task<ChunkState> GetChunkState(ChunkKey key)
         {
-            var chunk = clusterClient.GetGrain<IChunkGrain>(battleId, FormatClusterKeyExtension(x, y), null);
+            var chunk = clusterClient.GetGrain<IChunkGrain>(key.BattleId, FormatClusterKeyExtension(key), null);
             return chunk.GetStateAsync();
         }
 
-        private string FormatClusterKeyExtension(BattleAction battleAction)
+        private string FormatClusterKeyExtension(ChunkKey key)
         {
-            return $"{battleAction.Key.ChunkXIndex}:{battleAction.Key.ChunkYIndex}";
+            return $"{key.ChunkXIndex}:{key.ChunkYIndex}";
         }
-
-        private string FormatClusterKeyExtension(int chunkXIndex, int chunkYIndex)
-        {
-            return $"{chunkXIndex}:{chunkYIndex}";
-        }
-
+        
         public Task Subscribe(ChunkKey key, Action<ChunkUpdate> onUpdate)
         {
             throw new NotImplementedException();
@@ -71,11 +59,6 @@ namespace PixelBattles.Chunkler.Client
         public Task Unsubscribe(ChunkKey key)
         {
             throw new NotImplementedException();
-        }
-
-        public void Dispose()
-        {
-            clusterClient.Dispose();
         }
     }
 }

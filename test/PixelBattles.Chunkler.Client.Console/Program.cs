@@ -17,24 +17,24 @@ namespace PixelBattles.Chunkler.Client
             Console.WriteLine("Starting...");
             ChunklerClient chunklerClient = new ChunklerClient(cfg => cfg.AddConsole());
             await chunklerClient.Connect();
-            BattleAction gameAction = new BattleAction
+            var chunkKey = new ChunkKey
             {
-                Key = new ChunkKey
-                {
-                    BattleId = Guid.Parse("88d311d3-34bb-4584-9e6f-165e966d7cf7"),
-                    ChunkXIndex = 0,
-                    ChunkYIndex = 0,
-                },
-                WidthIndex = 0,
-                HeightIndex = 0,
+                BattleId = Guid.Parse("88d311d3-34bb-4584-9e6f-165e966d7cf7"),
+                ChunkXIndex = 0,
+                ChunkYIndex = 0,
+            };
+            var action = new ChunkAction
+            {
+                XIndex = 0,
+                YIndex = 0,
                 Color = 2465474
             };
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
             for (int i = 0; i < 10000; i++)
             {
-                await chunklerClient.ProcessAction(gameAction);
-                await chunklerClient.GetChunkState(gameAction.Key.BattleId, gameAction.Key.ChunkXIndex, gameAction.Key.ChunkYIndex);
+                await chunklerClient.ProcessAction(chunkKey, action);
+                await chunklerClient.GetChunkState(chunkKey);
             }
             stopWatch.Stop();
             Console.WriteLine(stopWatch.Elapsed);

@@ -19,8 +19,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{3BDEC142-3
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PixelBattles.Chunkler.Client.Console", "test\PixelBattles.Chunkler.Client.Console\PixelBattles.Chunkler.Client.Console.csproj", "{F21E2E42-7120-4611-B988-84B8230B4322}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PixelBattles.Chunkler.Client.Abstractions", "src\PixelBattles.Chunkler.Client.Abstractions\PixelBattles.Chunkler.Client.Abstractions.csproj", "{53F73703-A871-4883-9E41-DF004755361C}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "client", "client", "{48158868-7056-463C-B70A-6DFFA8D66E8F}"
 EndProject
 Global
@@ -53,10 +51,6 @@ Global
 		{F21E2E42-7120-4611-B988-84B8230B4322}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F21E2E42-7120-4611-B988-84B8230B4322}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F21E2E42-7120-4611-B988-84B8230B4322}.Release|Any CPU.Build.0 = Release|Any CPU
-		{53F73703-A871-4883-9E41-DF004755361C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{53F73703-A871-4883-9E41-DF004755361C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{53F73703-A871-4883-9E41-DF004755361C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{53F73703-A871-4883-9E41-DF004755361C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -68,7 +62,6 @@ Global
 		{5303C638-7DC0-4A8E-BA2C-D730E466871B} = {48158868-7056-463C-B70A-6DFFA8D66E8F}
 		{86C77787-E726-4D02-AF60-C70AFF1D8E4C} = {F5972258-F80D-42C0-90B8-88A59FA8E9D9}
 		{F21E2E42-7120-4611-B988-84B8230B4322} = {3BDEC142-309A-4CFC-97C5-7A4DFD121980}
-		{53F73703-A871-4883-9E41-DF004755361C} = {48158868-7056-463C-B70A-6DFFA8D66E8F}
 		{48158868-7056-463C-B70A-6DFFA8D66E8F} = {F5972258-F80D-42C0-90B8-88A59FA8E9D9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
