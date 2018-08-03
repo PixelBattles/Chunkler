@@ -8,41 +8,43 @@ namespace PixelBattles.Chunkler.Client
 {
     public class ChunklerClient : IChunklerClient
     {
-        private IClusterClient clusterClient;
-        
-        public ChunklerClient(Action<ILoggingBuilder> configureLogging)
+        private IClusterClient _clusterClient;
+        private readonly ChunklerClientOptions _options;
+
+        public ChunklerClient(ChunklerClientOptions options)
         {
-            clusterClient = new ClientBuilder()
+            _options = options ?? throw new ArgumentNullException(nameof(options));
+
+            _clusterClient = new ClientBuilder()
                 .UseLocalhostClustering()
-                .Configure<ClusterOptions>(options =>
+                .Configure<ClusterOptions>(cfg =>
                 {
-                    options.ClusterId = "dev";
-                    options.ServiceId = "MyAwesomeService";
+                    cfg.ClusterId = cfg.ClusterId;
+                    cfg.ServiceId = cfg.ServiceId;
                 })
                 .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(IChunkGrain).Assembly))
-                .ConfigureLogging(configureLogging)
                 .Build();
         }
 
         public async Task Connect()
         {
-            await clusterClient.Connect();
+            await _clusterClient.Connect();
         }
 
         public async Task Close()
         {
-            await clusterClient.Close();
+            await _clusterClient.Close();
         }
 
         public Task<int> ProcessAction(ChunkKey key, ChunkAction action)
         {
-            var chunk = clusterClient.GetGrain<IChunkGrain>(key.BattleId, FormatClusterKeyExtension(key), null);
+            var chunk = _clusterClient.GetGrain<IChunkGrain>(key.BattleId, FormatClusterKeyExtension(key), null);
             return chunk.ProcessActionAsync(action);
         }
 
         public Task<ChunkState> GetChunkState(ChunkKey key)
         {
-            var chunk = clusterClient.GetGrain<IChunkGrain>(key.BattleId, FormatClusterKeyExtension(key), null);
+            var chunk = _clusterClient.GetGrain<IChunkGrain>(key.BattleId, FormatClusterKeyExtension(key), null);
             return chunk.GetStateAsync();
         }
 

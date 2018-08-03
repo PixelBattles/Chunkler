@@ -15,7 +15,11 @@ namespace PixelBattles.Chunkler.Client
         private static async Task ProcessAsync()
         {
             Console.WriteLine("Starting...");
-            ChunklerClient chunklerClient = new ChunklerClient(cfg => cfg.AddConsole());
+            ChunklerClient chunklerClient = new ChunklerClient(new ChunklerClientOptions
+            {
+                ClusterId = "dev",
+                ServiceId = "MyAwesomeService"
+            });
             await chunklerClient.Connect();
             var chunkKey = new ChunkKey
             {

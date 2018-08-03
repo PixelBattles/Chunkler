@@ -7,7 +7,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.0.0" />
     <PackageReference Include="Microsoft.Orleans.Server" Version="2.0.0" />
-    <PackageReference Include="PixelBattles.Server.Client" Version="0.1.1-CI-20180725-224224" />
+    <PackageReference Include="PixelBattles.Server.Client" Version="1.0.0-CI-20180802-210505" />
   </ItemGroup>
 
   <ItemGroup>
