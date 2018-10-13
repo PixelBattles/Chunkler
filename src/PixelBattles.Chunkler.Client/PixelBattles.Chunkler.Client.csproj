@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PixelBattles.Chunkler.Grains.Abstractions\PixelBattles.Chunkler.Grains.Abstractions.csproj" />
+    <ProjectReference Include="..\PixelBattles.Chunkler.Abstractions\PixelBattles.Chunkler.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>
