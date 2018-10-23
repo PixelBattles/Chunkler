@@ -1,13 +1,16 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Orleans.Hosting;
+using Orleans.Providers.MongoDB.Configuration;
 using PixelBattles.Chunkler.Grains;
 using System;
+using System.IO;
 using System.Net;
 using System.Threading.Tasks;
-using PixelBattles.Server.Client;
 
 namespace PixelBattles.Chunkler.Hosting
 {
@@ -34,14 +37,28 @@ namespace PixelBattles.Chunkler.Hosting
 
         private static async Task<ISiloHost> StartSilo()
         {
-            var builder = new SiloHostBuilder() 
-                .UseLocalhostClustering()
-                .Configure<ClusterOptions>(options =>
+            var builder = new SiloHostBuilder()
+                .ConfigureHostConfiguration(configHost =>
                 {
-                    options.ClusterId = "dev";
-                    options.ServiceId = "MyAwesomeService";
+                    configHost
+                        .SetBasePath(Directory.GetCurrentDirectory())
+                        .AddJsonFile("hostsettings.json", optional: true);
                 })
-                .AddMemoryGrainStorage("MemoryStore")
+                .ConfigureAppConfiguration((hostContext, configApp) =>
+                {
+                    configApp
+                        .SetBasePath(Directory.GetCurrentDirectory())
+                        .AddJsonFile("appsettings.json", optional: true)
+                        .AddJsonFile($"appsettings.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true);
+                })
+                .ConfigureServices((context, services) => 
+                {
+                    services.Configure<MongoDBMembershipTableOptions>(context.Configuration.GetSection(nameof(MongoDBMembershipTableOptions)));
+                    services.Configure<MongoDBGrainStorageOptions>("MongoDBGrainStorage", context.Configuration.GetSection(nameof(MongoDBGrainStorageOptions)));
+                    services.Configure<ClusterOptions>(context.Configuration.GetSection(nameof(ClusterOptions)));
+                })
+                .UseMongoDBClustering()
+                .AddMongoDBGrainStorage("MongoDBGrainStorage")
                 .Configure<EndpointOptions>(options => options.AdvertisedIPAddress = IPAddress.Loopback)
                 .ConfigureLogging(logging => logging.AddConsole())
                 //.ConfigureServices(c => c.AddApiClient(opt => opt.BaseUrl = "http://localhost:5000"))

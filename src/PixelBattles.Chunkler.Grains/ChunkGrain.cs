@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace PixelBattles.Chunkler.Grains
 {
-    [StorageProvider(ProviderName = "MemoryStore")]
+    [StorageProvider(ProviderName = "MongoDBGrainStorage")]
     public class ChunkGrain : Grain<ChunkGrainState>, IChunkGrain
     {
         private readonly IApiClient _apiClient;
