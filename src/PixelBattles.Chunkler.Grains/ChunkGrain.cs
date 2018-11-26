@@ -1,6 +1,6 @@
 ﻿using Orleans;
 using Orleans.Providers;
-using PixelBattles.Server.Client;
+using PixelBattles.API.Client;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Png;
