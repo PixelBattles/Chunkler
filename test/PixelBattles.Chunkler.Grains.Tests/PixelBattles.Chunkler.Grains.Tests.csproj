@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\PixelBattles.Chunkler.Client\PixelBattles.Chunkler.Client.csproj" />
+    <ProjectReference Include="..\..\src\PixelBattles.Chunkler.Grains\PixelBattles.Chunkler.Grains.csproj" />
   </ItemGroup>
 
 </Project>

@@ -17,6 +17,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PixelBattles.Chunkler.Hosti
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PixelBattles.Chunkler.Client.Tests", "test\PixelBattles.Chunkler.Client\PixelBattles.Chunkler.Client.Tests.csproj", "{68535592-73E9-45BA-A952-B43025D23DDE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PixelBattles.Chunkler.Grains.Tests", "test\PixelBattles.Chunkler.Grains.Tests\PixelBattles.Chunkler.Grains.Tests.csproj", "{ABE7F176-D4C4-4C9D-9CA6-B6DEB398F18B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -43,6 +45,10 @@ Global
 		{68535592-73E9-45BA-A952-B43025D23DDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{68535592-73E9-45BA-A952-B43025D23DDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{68535592-73E9-45BA-A952-B43025D23DDE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ABE7F176-D4C4-4C9D-9CA6-B6DEB398F18B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ABE7F176-D4C4-4C9D-9CA6-B6DEB398F18B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ABE7F176-D4C4-4C9D-9CA6-B6DEB398F18B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ABE7F176-D4C4-4C9D-9CA6-B6DEB398F18B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -53,6 +59,7 @@ Global
 		{B42F89AE-99DD-4102-9FAF-9629D03FE7CD} = {F5972258-F80D-42C0-90B8-88A59FA8E9D9}
 		{A2177CC2-5A6C-44EC-8FD3-A8DF459F31B4} = {F5972258-F80D-42C0-90B8-88A59FA8E9D9}
 		{68535592-73E9-45BA-A952-B43025D23DDE} = {3BDEC142-309A-4CFC-97C5-7A4DFD121980}
+		{ABE7F176-D4C4-4C9D-9CA6-B6DEB398F18B} = {3BDEC142-309A-4CFC-97C5-7A4DFD121980}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1CED2B5C-9F0D-4EE5-8A09-31AAC0629C79}

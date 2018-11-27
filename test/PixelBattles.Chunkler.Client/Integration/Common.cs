@@ -1,20 +1,15 @@
-﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Xunit;
 
-namespace PixelBattles.Chunkler.Client
+namespace PixelBattles.Chunkler.Client.Tests
 {
-    class Program
+    public class Common
     {
-        static void Main(string[] args)
+        [Fact(Skip = "Integration")]
+        public async Task Test1()
         {
-            ProcessAsync().Wait();
-        }
-
-        private static async Task ProcessAsync()
-        {
-            Console.WriteLine("Starting...");
             ChunklerClient chunklerClient = new ChunklerClient(new ChunklerClientOptions
             {
                 ClusterId = "dev",
@@ -23,7 +18,7 @@ namespace PixelBattles.Chunkler.Client
             await chunklerClient.Connect();
             var chunkKey = new ChunkKey
             {
-                BattleId = Guid.Parse("88d311d3-34bb-4584-9e6f-165e966d7cf7"),
+                BattleId = Guid.Parse("53f0c496-7a95-43ae-8e9a-81d65fc3d478"),
                 ChunkXIndex = 0,
                 ChunkYIndex = 0,
             };
@@ -41,8 +36,6 @@ namespace PixelBattles.Chunkler.Client
                 await chunklerClient.GetChunkState(chunkKey);
             }
             stopWatch.Stop();
-            Console.WriteLine(stopWatch.Elapsed);
-            Console.ReadKey();
         }
     }
 }
