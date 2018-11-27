@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
     <AssemblyName>PixelBattles.Chunkler.Hosting.Console</AssemblyName>
     <RootNamespace>PixelBattles.Chunkler.Hosting</RootNamespace>
   </PropertyGroup>
@@ -19,13 +19,15 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="2.1.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.0.2" />
-    <PackageReference Include="Microsoft.Orleans.Server" Version="2.1.2" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Orleans.OrleansRuntime" Version="2.1.2" />
+    <PackageReference Include="Microsoft.Orleans.OrleansProviders" Version="2.1.2" />
     <PackageReference Include="Orleans.Providers.MongoDB" Version="2.0.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\PixelBattles.Chunkler.Grains\PixelBattles.Chunkler.Grains.csproj" />
+	<ProjectReference Include="..\PixelBattles.Chunkler.Abstractions\PixelBattles.Chunkler.Abstractions.csproj" />
   </ItemGroup>
 
   <ItemGroup>

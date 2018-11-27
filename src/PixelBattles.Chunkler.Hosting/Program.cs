@@ -6,6 +6,7 @@ using Orleans;
 using Orleans.Configuration;
 using Orleans.Hosting;
 using Orleans.Providers.MongoDB.Configuration;
+using PixelBattles.API.Client;
 using PixelBattles.Chunkler.Grains;
 using System;
 using System.IO;
@@ -61,7 +62,7 @@ namespace PixelBattles.Chunkler.Hosting
                 .AddMongoDBGrainStorage("MongoDBGrainStorage")
                 .Configure<EndpointOptions>(options => options.AdvertisedIPAddress = IPAddress.Loopback)
                 .ConfigureLogging(logging => logging.AddConsole())
-                //.ConfigureServices(c => c.AddApiClient(opt => opt.BaseUrl = "http://localhost:5000"))
+                .ConfigureServices(c => c.AddApiClient(opt => opt.BaseUrl = "http://localhost:5000"))
                 .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(ChunkGrain).Assembly).WithReferences());
 
             var host = builder.Build();

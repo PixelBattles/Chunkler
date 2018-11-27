@@ -18,7 +18,7 @@ namespace PixelBattles.Chunkler.Client
             ChunklerClient chunklerClient = new ChunklerClient(new ChunklerClientOptions
             {
                 ClusterId = "dev",
-                ServiceId = "MyAwesomeService"
+                ServiceId = "ChunklerService"
             });
             await chunklerClient.Connect();
             var chunkKey = new ChunkKey
