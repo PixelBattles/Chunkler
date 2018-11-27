@@ -19,10 +19,9 @@ namespace PixelBattles.Chunkler.Client
                 .UseLocalhostClustering()
                 .Configure<ClusterOptions>(cfg =>
                 {
-                    cfg.ClusterId = cfg.ClusterId;
-                    cfg.ServiceId = cfg.ServiceId;
+                    cfg.ClusterId = options.ClusterId;
+                    cfg.ServiceId = options.ServiceId;
                 })
-                .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(IChunkGrain).Assembly))
                 .Build();
         }
 
