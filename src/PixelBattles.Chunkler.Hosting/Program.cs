@@ -8,6 +8,7 @@ using Orleans.Hosting;
 using Orleans.Providers.MongoDB.Configuration;
 using PixelBattles.API.Client;
 using PixelBattles.Chunkler.Grains;
+using PixelBattles.Chunkler.Grains.ImageProcessing;
 using System;
 using System.IO;
 using System.Net;
@@ -63,6 +64,7 @@ namespace PixelBattles.Chunkler.Hosting
                 .Configure<EndpointOptions>(options => options.AdvertisedIPAddress = IPAddress.Loopback)
                 .ConfigureLogging(logging => logging.AddConsole())
                 .ConfigureServices(c => c.AddApiClient(opt => opt.BaseUrl = "http://localhost:5000"))
+                .ConfigureServices(c => c.AddSingleton<IImageProcessor, ImageProcessor>())
                 .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(ChunkGrain).Assembly).WithReferences());
 
             var host = builder.Build();
