@@ -62,7 +62,6 @@ namespace PixelBattles.Chunkler.Grains.Tests
                 Rgba32.Yellow
             };
             var serializedImage = _imageProcessor.GetBytesFromPixels(originalImage, 2, 3);
-            File.WriteAllBytes(@"C:\Users\i.klimchuk\Desktop\my.png", serializedImage);
             var resultImage = _imageProcessor.GetPixelsFromBytes(serializedImage, 2, 3);
 
             Assert.True(AreSame(originalImage, resultImage));
