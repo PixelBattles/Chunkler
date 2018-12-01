@@ -1,7 +1,6 @@
 using PixelBattles.Chunkler.Grains.ImageProcessing;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
-using System.IO;
 using Xunit;
 
 namespace PixelBattles.Chunkler.Grains.Tests
