@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using NSubstitute;
 using Orleans.Configuration;
 using Orleans.Hosting;
 using PixelBattles.API.Client;
@@ -23,7 +25,8 @@ namespace PixelBattles.Chunkler.Client.Tests
             ChunklerClient = new ChunklerClient(new ChunklerClientOptions
             {
                 ClusterOptions = Host.Services.GetService<IOptions<ClusterOptions>>().Value
-            });
+            },
+            Substitute.For<ILogger>());
 
             ApiClient = Host.Services.GetService<IApiClient>();
 

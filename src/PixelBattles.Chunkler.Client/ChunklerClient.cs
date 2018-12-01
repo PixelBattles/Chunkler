@@ -8,12 +8,15 @@ namespace PixelBattles.Chunkler.Client
 {
     public class ChunklerClient : IChunklerClient
     {
-        private IClusterClient _clusterClient;
+        private readonly IClusterClient _clusterClient;
+        private readonly ILogger _logger;
         private readonly ChunklerClientOptions _options;
+        private readonly IChunkObserver _chunkObserver;
 
-        public ChunklerClient(ChunklerClientOptions options)
+        public ChunklerClient(ChunklerClientOptions options, ILogger logger)
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             _clusterClient = new ClientBuilder()
                 .UseLocalhostClustering()
@@ -23,11 +26,14 @@ namespace PixelBattles.Chunkler.Client
                     cfg.ServiceId = options.ClusterOptions.ServiceId;
                 })
                 .Build();
+
+            _chunkObserver = new ChunkObserver(_logger);
         }
 
         public async Task Connect()
         {
             await _clusterClient.Connect();
+            //var observerReference = await _clusterClient.CreateObjectReference<IChunkObserver>(observer);
         }
 
         public async Task Close()
@@ -61,5 +67,21 @@ namespace PixelBattles.Chunkler.Client
         {
             throw new NotImplementedException();
         }
+
+        //private static async Task StaySubscribed(IChunkGrain grain, IChunkObserver observer, CancellationToken token)
+        //{
+        //    while (!token.IsCancellationRequested)
+        //    {
+        //        try
+        //        {
+        //            await Task.Delay(TimeSpan.FromSeconds(5), token);
+        //            await grain.Subscribe(_chunkObserver);
+        //        }
+        //        catch (Exception exception)
+        //        {
+        //            Console.WriteLine($"Exception while trying to subscribe for updates: {exception}");
+        //        }
+        //    }
+        //}
     }
 }

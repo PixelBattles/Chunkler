@@ -5,16 +5,17 @@ namespace PixelBattles.Chunkler.Client
 {
     public class ChunkObserver : IChunkObserver
     {
-        ILogger logger;
+        ILogger _logger;
 
-        public ChunkObserver(ILogger<ChunkObserver> logger)
+        public ChunkObserver(ILogger logger)
         {
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public void ChunkUpdated(int updateIndex)
+        public void ChunkUpdated(ChunkKey chunkKey, ChunkUpdate update)
         {
-            logger.LogDebug($"Chunk updated {updateIndex}");
+            _logger.LogDebug($@"Chunk updated for battleId:{chunkKey.BattleId} and chunk:{chunkKey.ChunkXIndex}-{chunkKey.ChunkYIndex}. 
+                    Change index: {update.ChangeIndex} in pixel:{update.XIndex}-{update.YIndex} to color:{update.Color}");
         }
     }
 }

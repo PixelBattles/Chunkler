@@ -4,6 +4,6 @@ namespace PixelBattles.Chunkler
 {
     public interface IChunkObserver : IGrainObserver
     {
-        void ChunkUpdated(int updateIndex);
+        void ChunkUpdated(ChunkKey chunkKey, ChunkUpdate update);
     }
 }

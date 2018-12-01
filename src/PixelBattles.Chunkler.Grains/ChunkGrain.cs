@@ -4,6 +4,7 @@ using PixelBattles.API.Client;
 using PixelBattles.Chunkler.Grains.ImageProcessing;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace PixelBattles.Chunkler.Grains
@@ -13,9 +14,10 @@ namespace PixelBattles.Chunkler.Grains
     {
         private readonly IApiClient _apiClient;
         private readonly IImageProcessor _imageProcessor;
-        private readonly GrainObserverManager<IChunkObserver> observers = new GrainObserverManager<IChunkObserver>();
+        private readonly GrainObserverManager<IChunkObserver> _observers;
 
-        private Guid _battleId;
+        private ChunkKey _chunkKey;
+
         private int _chunkWidth;
         private int _chunkHeight;
         private Rgba32[] _pixelsCache;
@@ -26,12 +28,18 @@ namespace PixelBattles.Chunkler.Grains
         {
             _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
             _imageProcessor = imageProcessor ?? throw new ArgumentNullException(nameof(imageProcessor));
+            _observers = new GrainObserverManager<IChunkObserver>();
         }
         
         protected override async Task ReadStateAsync()
         {
-            _battleId = this.GetPrimaryKey(out string postfix);
-            var battle = await _apiClient.GetBattleAsync(_battleId);
+            _chunkKey = new ChunkKey();
+            _chunkKey.BattleId = this.GetPrimaryKey(out string postfix);
+            var chunkIndexes = postfix.Split(':').Select(t => int.Parse(t)).ToArray();
+            _chunkKey.ChunkXIndex = chunkIndexes[0];
+            _chunkKey.ChunkYIndex = chunkIndexes[1];
+
+            var battle = await _apiClient.GetBattleAsync(_chunkKey.BattleId);
             _chunkWidth = battle.Settings.ChunkWidth;
             _chunkHeight = battle.Settings.ChunkHeight;
 
@@ -60,8 +68,8 @@ namespace PixelBattles.Chunkler.Grains
         
         public Task Subscribe(IChunkObserver observer)
         {
-            observers.Subscribe(observer);
-            return Task.FromResult(0);
+            _observers.Subscribe(observer);
+            return Task.CompletedTask;
         }
         
         public Task<ChunkState> GetStateAsync()
@@ -79,7 +87,17 @@ namespace PixelBattles.Chunkler.Grains
             State.ChangeIndex++;
             _pixelsCache[action.XIndex + action.YIndex * _chunkWidth].Rgba = action.Color;
             State.Image = _imageProcessor.GetBytesFromPixels(_pixelsCache, _chunkHeight, _chunkWidth);
+
             await WriteStateAsync();
+
+            _observers.Notify(observer => observer.ChunkUpdated(_chunkKey, new ChunkUpdate
+            {
+                ChangeIndex = State.ChangeIndex,
+                Color = action.Color,
+                XIndex = action.XIndex,
+                YIndex = action.YIndex
+            }));
+
             return State.ChangeIndex;
         }
     }
