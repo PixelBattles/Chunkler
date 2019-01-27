@@ -2,12 +2,15 @@
 using Orleans;
 using Orleans.Configuration;
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace PixelBattles.Chunkler.Client
 {
     public class ChunklerClient : IChunklerClient
     {
+        private readonly ISubscriptionHandler subscriptionHandler;
         private readonly IClusterClient _clusterClient;
         private readonly ILogger _logger;
         private readonly ChunklerClientOptions _options;
@@ -33,14 +36,14 @@ namespace PixelBattles.Chunkler.Client
         public async Task Connect()
         {
             await _clusterClient.Connect();
-            //var observerReference = await _clusterClient.CreateObjectReference<IChunkObserver>(observer);
+            _clusterChunkObserver = await _clusterClient.CreateObjectReference<IChunkObserver>(_chunkObserver);
         }
 
         public async Task Close()
         {
             await _clusterClient.Close();
         }
-
+        
         public Task<int> ProcessAction(ChunkKey key, ChunkAction action)
         {
             var chunk = _clusterClient.GetGrain<IChunkGrain>(key.BattleId, FormatClusterKeyExtension(key), null);
@@ -58,30 +61,15 @@ namespace PixelBattles.Chunkler.Client
             return $"{key.ChunkXIndex}:{key.ChunkYIndex}";
         }
         
-        public Task Subscribe(ChunkKey key, Action<ChunkUpdate> onUpdate)
+        public async Task SubscribeAsync(ChunkKey key, Action<ChunkUpdate> onUpdate)
         {
-            throw new NotImplementedException();
+            var chunk = _clusterClient.GetGrain<IChunkGrain>(key.BattleId, FormatClusterKeyExtension(key), null);
+            await chunk.Subscribe(_clusterChunkObserver);
         }
 
         public Task Unsubscribe(ChunkKey key)
         {
             throw new NotImplementedException();
         }
-
-        //private static async Task StaySubscribed(IChunkGrain grain, IChunkObserver observer, CancellationToken token)
-        //{
-        //    while (!token.IsCancellationRequested)
-        //    {
-        //        try
-        //        {
-        //            await Task.Delay(TimeSpan.FromSeconds(5), token);
-        //            await grain.Subscribe(_chunkObserver);
-        //        }
-        //        catch (Exception exception)
-        //        {
-        //            Console.WriteLine($"Exception while trying to subscribe for updates: {exception}");
-        //        }
-        //    }
-        //}
     }
 }
