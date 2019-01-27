@@ -34,27 +34,6 @@ namespace PixelBattles.Chunkler.Grains
 
         public override async Task OnActivateAsync()
         {
-            _chunkKey = new ChunkKey
-            {
-                BattleId = this.GetPrimaryKey(out string postfix)
-            };
-            var chunkIndexes = postfix.Split(':').Select(t => int.Parse(t)).ToArray();
-            _chunkKey.ChunkXIndex = chunkIndexes[0];
-            _chunkKey.ChunkYIndex = chunkIndexes[1];
-
-            BattleDTO battle = null;
-            try
-            {
-                battle = await _apiClient.GetBattleAsync(_chunkKey.BattleId);
-            }
-            catch (Exception exception)
-            {
-                throw new Exception($"Failed to get battle by id: {_chunkKey.BattleId}", exception);
-            }
-
-            _chunkWidth = battle.Settings.ChunkWidth;
-            _chunkHeight = battle.Settings.ChunkHeight;
-
             await base.OnActivateAsync();
         }
 
@@ -80,7 +59,28 @@ namespace PixelBattles.Chunkler.Grains
         protected override async Task ReadStateAsync()
         {
             await base.ReadStateAsync();
-            
+
+            _chunkKey = new ChunkKey
+            {
+                BattleId = this.GetPrimaryKey(out string postfix)
+            };
+            var chunkIndexes = postfix.Split(':').Select(t => int.Parse(t)).ToArray();
+            _chunkKey.ChunkXIndex = chunkIndexes[0];
+            _chunkKey.ChunkYIndex = chunkIndexes[1];
+
+            BattleDTO battle = null;
+            try
+            {
+                battle = await _apiClient.GetBattleAsync(_chunkKey.BattleId);
+            }
+            catch (Exception exception)
+            {
+                throw new Exception($"Failed to get battle by id: {_chunkKey.BattleId}", exception);
+            }
+
+            _chunkWidth = battle.Settings.ChunkWidth;
+            _chunkHeight = battle.Settings.ChunkHeight;
+
             if (State.Image == null)
             {
                 _pixelsCache = _imageProcessor.GetDefaultImage(_chunkHeight, _chunkWidth);
