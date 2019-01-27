@@ -2,15 +2,13 @@
 using Orleans;
 using Orleans.Configuration;
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace PixelBattles.Chunkler.Client
 {
     public class ChunklerClient : IChunklerClient
     {
-        private readonly ISubscriptionHandler subscriptionHandler;
+        private IChunkObserver _clusterChunkObserver;
         private readonly IClusterClient _clusterClient;
         private readonly ILogger _logger;
         private readonly ChunklerClientOptions _options;
