@@ -25,6 +25,7 @@ namespace PixelBattles.Chunkler.Grains
         public GrainObserverManager()
         {
             this.GetDateTime = () => DateTime.UtcNow;
+            this.ExpirationDuration = TimeSpan.FromHours(1);//Test purposes
         }
 
         /// <summary>
