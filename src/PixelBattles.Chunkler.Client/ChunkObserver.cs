@@ -1,21 +1,35 @@
 ﻿using Microsoft.Extensions.Logging;
+using Orleans.Streams;
 using System;
+using System.Threading.Tasks;
 
 namespace PixelBattles.Chunkler.Client
 {
-    public class ChunkObserver : IChunkObserver
+    public class ChunkObserver : IAsyncObserver<ChunkUpdate>
     {
-        ILogger _logger;
+        private ILogger _logger;
+        private Action<ChunkUpdate> _action;
 
-        public ChunkObserver(ILogger logger)
+        public ChunkObserver(ILogger logger, Action<ChunkUpdate> action)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _action = action ?? throw new ArgumentNullException(nameof(action));
+        }
+        
+        public Task OnCompletedAsync()
+        {
+            return Task.CompletedTask;
         }
 
-        public void ChunkUpdated(ChunkKey chunkKey, ChunkUpdate update)
+        public Task OnErrorAsync(Exception ex)
         {
-            _logger.LogDebug($@"Chunk updated for battleId:{chunkKey.BattleId} and chunk:{chunkKey.ChunkXIndex}-{chunkKey.ChunkYIndex}. 
-                    Change index: {update.ChangeIndex} in pixel:{update.XIndex}-{update.YIndex} to color:{update.Color}");
+            return Task.CompletedTask;
+        }
+
+        public Task OnNextAsync(ChunkUpdate item, StreamSequenceToken token = null)
+        {
+            _action.Invoke(item);
+            return Task.CompletedTask;
         }
     }
 }

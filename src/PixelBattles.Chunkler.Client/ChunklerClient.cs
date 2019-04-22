@@ -1,18 +1,21 @@
 ﻿using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Configuration;
+using Orleans.Hosting;
+using Orleans.Streams;
 using System;
+using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
 namespace PixelBattles.Chunkler.Client
 {
     public class ChunklerClient : IChunklerClient
     {
-        private IChunkObserver _clusterChunkObserver;
-        private readonly IClusterClient _clusterClient;
         private readonly ILogger _logger;
         private readonly ChunklerClientOptions _options;
-        private readonly IChunkObserver _chunkObserver;
+        private readonly IClusterClient _clusterClient;
+        private readonly IStreamProvider _streamProvider;
+        private readonly ConcurrentDictionary<ChunkKey, StreamSubscriptionHandle<ChunkUpdate>> _streamSubscriptionHandles;
 
         public ChunklerClient(ChunklerClientOptions options, ILogger logger)
         {
@@ -26,48 +29,55 @@ namespace PixelBattles.Chunkler.Client
                     cfg.ClusterId = options.ClusterOptions.ClusterId;
                     cfg.ServiceId = options.ClusterOptions.ServiceId;
                 })
+                .AddSimpleMessageStreamProvider("SimpleChunkStreamProvider")
                 .Build();
 
-            _chunkObserver = new ChunkObserver(_logger);
-        }
-
-        public async Task Connect()
-        {
-            await _clusterClient.Connect();
-            _clusterChunkObserver = await _clusterClient.CreateObjectReference<IChunkObserver>(_chunkObserver);
-        }
-
-        public async Task Close()
-        {
-            await _clusterClient.Close();
+            _clusterClient.Connect().Wait();
+            _streamProvider = _clusterClient.GetStreamProvider("SimpleChunkStreamProvider");
+            _streamSubscriptionHandles = new ConcurrentDictionary<ChunkKey, StreamSubscriptionHandle<ChunkUpdate>>();
         }
         
-        public Task<int> ProcessAction(ChunkKey key, ChunkAction action)
+        public Task<ChunkState> GetChunkStateAsync(ChunkKey key)
         {
-            var chunk = _clusterClient.GetGrain<IChunkGrain>(key.BattleId, FormatClusterKeyExtension(key), null);
+            var chunk = _clusterClient.GetGrain<IChunkGrain>(FormatChunkKey(key));
+            return chunk.GetStateAsync();
+        }
+        
+        public async Task SubscribeOnUpdateAsync(ChunkKey key, Action<ChunkUpdate> onUpdate)
+        {
+            var stream = _streamProvider.GetStream<ChunkUpdate>(FormatChunkKey(key), "update");
+            var handler = await stream.SubscribeAsync(new ChunkObserver(_logger, onUpdate));
+            _streamSubscriptionHandles.TryAdd(key, handler);
+        }
+
+        public async Task UnsubscribeOnUpdateAsync(ChunkKey key)
+        {
+            if (_streamSubscriptionHandles.TryRemove(key, out var value))
+            {
+                await value.UnsubscribeAsync();
+            }
+        }
+
+        public Task<int> ProcessActionAsync(ChunkKey key, ChunkAction action)
+        {
+            var chunk = _clusterClient.GetGrain<IChunkGrain>(FormatChunkKey(key));
             return chunk.ProcessActionAsync(action);
         }
 
-        public Task<ChunkState> GetChunkState(ChunkKey key)
+        public async Task EnqueueActionAsync(ChunkKey key, ChunkAction action)
         {
-            var chunk = _clusterClient.GetGrain<IChunkGrain>(key.BattleId, FormatClusterKeyExtension(key), null);
-            return chunk.GetStateAsync();
+            var stream =_streamProvider.GetStream<ChunkAction>(FormatChunkKey(key), "action");
+            await stream.OnNextAsync(action);
         }
 
-        private string FormatClusterKeyExtension(ChunkKey key)
+        private Guid FormatChunkKey(ChunkKey key)
         {
-            return $"{key.ChunkXIndex}:{key.ChunkYIndex}";
-        }
-        
-        public async Task SubscribeAsync(ChunkKey key, Action<ChunkUpdate> onUpdate)
-        {
-            var chunk = _clusterClient.GetGrain<IChunkGrain>(key.BattleId, FormatClusterKeyExtension(key), null);
-            await chunk.Subscribe(_clusterChunkObserver);
+            return GuidExtensions.ToGuid(key.BattleId, key.ChunkXIndex, key.ChunkYIndex);
         }
 
-        public Task Unsubscribe(ChunkKey key)
+        public void Dispose()
         {
-            throw new NotImplementedException();
+            _clusterClient.Close().Wait();
         }
     }
 }

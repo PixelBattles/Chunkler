@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -8,33 +7,107 @@ namespace PixelBattles.Chunkler.Client.Tests
     {
         [Fact]
         [Trait("Category", "Integration")]
-        public async Task ChunklerClient_Can_ProcessAction()
+        public async Task ApiClient_Can_Get_BattleInfo()
         {
-            var battleId = Guid.Parse("53f0c496-7a95-43ae-8e9a-81d65fc3d478");
-            var battle = await ApiClient.GetBattleAsync(battleId);
+            var battle = await ApiClient.GetBattleAsync(ActiveBattleId);
 
             Assert.NotNull(battle);
+            Assert.Equal(battle.BattleId, ActiveBattleId);
+        }
 
-            var chunkKey = new ChunkKey
-            {
-                BattleId = Guid.Parse("53f0c496-7a95-43ae-8e9a-81d65fc3d478"),
-                ChunkXIndex =  0,
-                ChunkYIndex = 0,
-            };
+        [Fact]
+        [Trait("Category", "Integration")]
+        public async Task ChunklerClient_Can_GetChunkState()
+        {
+            var state = await ChunklerClient.GetChunkStateAsync(ActiveBattleChunkKey);
+            Assert.NotNull(state);
+        }
 
-            var action = new ChunkAction
-            {
-                XIndex = 0,
-                YIndex = 0,
-                Color = 2465474
-            };
+        [Fact]
+        [Trait("Category", "Integration")]
+        public async Task ChunklerClient_Can_ProcessAction()
+        {
+            var currentState = await ChunklerClient.GetChunkStateAsync(ActiveBattleChunkKey);
+            var changeIndex = await ChunklerClient.ProcessActionAsync(ActiveBattleChunkKey, new ChunkAction() { Color = 0, XIndex = 0, YIndex = 0 });
 
-            var currentState = await ChunklerClient.GetChunkState(chunkKey);
-            var changeIndex = await ChunklerClient.ProcessAction(chunkKey, action);
-            var newState = await ChunklerClient.GetChunkState(chunkKey);
+            Assert.NotEqual(changeIndex, currentState.ChangeIndex);
+        }
+
+        [Fact]
+        [Trait("Category", "Integration")]
+        public async Task ChunklerClient_Can_ProcessAction_And_StateUpdated()
+        {
+            var currentState = await ChunklerClient.GetChunkStateAsync(ActiveBattleChunkKey);
+            var changeIndex = await ChunklerClient.ProcessActionAsync(ActiveBattleChunkKey, new ChunkAction() { Color = 0, XIndex = 0, YIndex = 0 });
+            var newState = await ChunklerClient.GetChunkStateAsync(ActiveBattleChunkKey);
 
             Assert.Equal(changeIndex, newState.ChangeIndex);
-            Assert.Equal(changeIndex, currentState.ChangeIndex + 1);
+            Assert.NotEqual(currentState.ChangeIndex, newState.ChangeIndex);
+        }
+
+        [Fact]
+        [Trait("Category", "Integration")]
+        public async Task ChunklerClient_CanHandle_SubscribeUpdates()
+        {
+            var taskCompletionSource = new TaskCompletionSource<object>();
+            ChunkUpdate update = null;
+            await ChunklerClient.SubscribeOnUpdateAsync(ActiveBattleChunkKey, chunkUpdate =>
+            {
+                update = chunkUpdate;
+                taskCompletionSource.SetResult(new object());
+            });
+            var action = new ChunkAction() { Color = 0, XIndex = 0, YIndex = 0 };
+            var changeIndex = await ChunklerClient.ProcessActionAsync(ActiveBattleChunkKey, action);
+
+            await Task.WhenAny(taskCompletionSource.Task, Task.Delay(10000));
+
+            Assert.NotNull(update);
+            Assert.Equal(changeIndex, update.ChangeIndex);
+            Assert.Equal(action.XIndex, update.XIndex);
+            Assert.Equal(action.YIndex, update.YIndex);
+            Assert.Equal(action.Color, update.Color);
+        }
+
+        [Fact]
+        [Trait("Category", "Integration")]
+        public async Task ChunklerClient_CanHandle_UnsubscribeUpdates()
+        {
+            var taskCompletionSource = new TaskCompletionSource<object>();
+            ChunkUpdate update = null;
+            await ChunklerClient.SubscribeOnUpdateAsync(ActiveBattleChunkKey, chunkUpdate =>
+            {
+                update = chunkUpdate;
+                taskCompletionSource.SetResult(new object());
+            });
+            await ChunklerClient.UnsubscribeOnUpdateAsync(ActiveBattleChunkKey);
+            var action = new ChunkAction() { Color = 0, XIndex = 0, YIndex = 0 };
+            var changeIndex = await ChunklerClient.ProcessActionAsync(ActiveBattleChunkKey, action);
+
+            await Task.WhenAny(taskCompletionSource.Task, Task.Delay(1000));
+
+            Assert.Null(update);
+        }
+
+        [Fact]
+        [Trait("Category", "Integration")]
+        public async Task ChunklerClient_CanEnqueueActions()
+        {
+            var taskCompletionSource = new TaskCompletionSource<object>();
+            ChunkUpdate update = null;
+            await ChunklerClient.SubscribeOnUpdateAsync(ActiveBattleChunkKey, chunkUpdate =>
+            {
+                update = chunkUpdate;
+                taskCompletionSource.SetResult(new object());
+            });
+            var action = new ChunkAction() { Color = 0, XIndex = 0, YIndex = 0 };
+            await ChunklerClient.EnqueueActionAsync(ActiveBattleChunkKey, action);
+
+            await Task.WhenAny(taskCompletionSource.Task, Task.Delay(10000));
+
+            Assert.NotNull(update);
+            Assert.Equal(action.XIndex, update.XIndex);
+            Assert.Equal(action.YIndex, update.YIndex);
+            Assert.Equal(action.Color, update.Color);
         }
     }
 }

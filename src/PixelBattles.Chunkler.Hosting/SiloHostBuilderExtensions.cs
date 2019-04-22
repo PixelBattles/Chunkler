@@ -40,6 +40,8 @@ namespace PixelBattles.Chunkler.Hosting
                 })
                 .UseMongoDBClustering()
                 .AddMongoDBGrainStorage("MongoDBGrainStorage")
+                .AddMemoryGrainStorage("PubSubStore")
+                .AddSimpleMessageStreamProvider("SimpleChunkStreamProvider")
                 .Configure<EndpointOptions>(options => options.AdvertisedIPAddress = IPAddress.Loopback)
                 .ConfigureLogging(logging => logging.AddConsole())
                 .ConfigureServices(c => c.AddSingleton<IApiClient, ApiClient>())
