@@ -5,10 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="PixelBattles.API.Client" Version="0.1.147" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.2.0" />
+    <PackageReference Include="PixelBattles.API.Client" Version="0.1.163" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0005" />
-	<PackageReference Include="Microsoft.Orleans.Core.Abstractions" Version="2.1.2" />
-	<PackageReference Include="Microsoft.Orleans.OrleansCodeGenerator.Build" Version="2.1.2" PrivateAssets="all">
+	<PackageReference Include="Microsoft.Orleans.Core.Abstractions" Version="2.3.0" />
+	<PackageReference Include="Microsoft.Orleans.OrleansCodeGenerator.Build" Version="2.3.0" PrivateAssets="all">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
   </ItemGroup>

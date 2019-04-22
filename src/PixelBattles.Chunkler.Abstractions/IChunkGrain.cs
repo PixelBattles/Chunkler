@@ -3,12 +3,9 @@ using System.Threading.Tasks;
 
 namespace PixelBattles.Chunkler
 {
-    public interface IChunkGrain : IGrainWithGuidCompoundKey
+    public interface IChunkGrain : IGrainWithGuidKey
     {
         Task<int> ProcessActionAsync(ChunkAction action);
-
         Task<ChunkState> GetStateAsync();
-
-        Task Subscribe(IChunkObserver observer);
     }
 }

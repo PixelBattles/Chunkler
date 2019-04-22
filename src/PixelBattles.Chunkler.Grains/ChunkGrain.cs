@@ -1,83 +1,52 @@
-﻿using Orleans;
+﻿using Microsoft.Extensions.Logging;
+using Orleans;
 using Orleans.Providers;
+using Orleans.Streams;
 using PixelBattles.API.Client;
 using PixelBattles.API.DataTransfer.Battle;
 using PixelBattles.Chunkler.Grains.ImageProcessing;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace PixelBattles.Chunkler.Grains
 {
     [StorageProvider(ProviderName = "MongoDBGrainStorage")]
-    public class ChunkGrain : Grain<ChunkGrainState>, IChunkGrain
+    [ImplicitStreamSubscription("action")]
+    public class ChunkGrain : Grain<ChunkGrainState>, IChunkGrain, IAsyncObserver<ChunkAction>
     {
+        private readonly ILogger _logger;
         private readonly IApiClient _apiClient;
         private readonly IImageProcessor _imageProcessor;
-        private readonly GrainObserverManager<IChunkObserver> _chunkObserver;
-
-        private ChunkKey _chunkKey;
-
+        
         private int _chunkWidth;
         private int _chunkHeight;
         private Rgba32[] _pixelsCache;
+        private Guid _chunkKey;
+        private long _battleId;
+        private int _xChunk;
+        private int _yChunk;
+        
+        private IAsyncStream<ChunkUpdate> _chunkUpdateEventStream;
+        private IAsyncStream<ChunkAction> _chunkActionEventStream;
 
         public ChunkGrain(
             IApiClient apiClient,
-            IImageProcessor imageProcessor)
+            IImageProcessor imageProcessor,
+            ILogger<ChunkGrain> logger)
         {
             _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
             _imageProcessor = imageProcessor ?? throw new ArgumentNullException(nameof(imageProcessor));
-            _chunkObserver = new GrainObserverManager<IChunkObserver>();
-        }
-
-        public override async Task OnActivateAsync()
-        {
-            await base.OnActivateAsync();
-        }
-
-        public override Task OnDeactivateAsync()
-        {
-            return base.OnDeactivateAsync();
-        }
-
-        protected override Task ClearStateAsync()
-        {
-            State.Image = null;
-            State.ChangeIndex = 0;
-            _pixelsCache = null;
-
-            return base.ClearStateAsync();
-        }
-
-        protected override Task WriteStateAsync()
-        {
-            return base.WriteStateAsync();
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         protected override async Task ReadStateAsync()
         {
             await base.ReadStateAsync();
 
-            _chunkKey = new ChunkKey
-            {
-                BattleId = this.GetPrimaryKey(out string postfix)
-            };
-            var chunkIndexes = postfix.Split(':').Select(t => int.Parse(t)).ToArray();
-            _chunkKey.ChunkXIndex = chunkIndexes[0];
-            _chunkKey.ChunkYIndex = chunkIndexes[1];
-
-            BattleDTO battle = null;
-            try
-            {
-                battle = await _apiClient.GetBattleAsync(_chunkKey.BattleId);
-            }
-            catch (Exception exception)
-            {
-                throw new Exception($"Failed to get battle by id: {_chunkKey.BattleId}", exception);
-            }
-
+            _chunkKey = this.GetPrimaryKey();
+            (_battleId, _xChunk, _yChunk) = GuidExtensions.ToKeys(_chunkKey);
+            BattleDTO battle = await _apiClient.GetBattleAsync(_battleId);
             _chunkWidth = battle.Settings.ChunkWidth;
             _chunkHeight = battle.Settings.ChunkHeight;
 
@@ -94,12 +63,24 @@ namespace PixelBattles.Chunkler.Grains
             }
         }
 
-        public Task Subscribe(IChunkObserver observer)
+        public override async Task OnActivateAsync()
         {
-            _chunkObserver.Subscribe(observer);
-            return Task.CompletedTask;
+            var streamProvider = GetStreamProvider("SimpleChunkStreamProvider");
+            _chunkUpdateEventStream = streamProvider.GetStream<ChunkUpdate>(_chunkKey, "update");
+            _chunkActionEventStream = streamProvider.GetStream<ChunkAction>(_chunkKey, "action");
+            await _chunkActionEventStream.SubscribeAsync(this);
+            await base.OnActivateAsync();
         }
-        
+
+        protected override Task ClearStateAsync()
+        {
+            State.Image = null;
+            State.ChangeIndex = 0;
+            _pixelsCache = null;
+
+            return base.ClearStateAsync();
+        }
+                
         public Task<ChunkState> GetStateAsync()
         {
             var chunkState = new ChunkState
@@ -118,15 +99,44 @@ namespace PixelBattles.Chunkler.Grains
 
             await WriteStateAsync();
 
-            _chunkObserver.Notify(observer => observer.ChunkUpdated(_chunkKey, new ChunkUpdate
+            await _chunkUpdateEventStream.OnNextAsync(new ChunkUpdate
             {
                 ChangeIndex = State.ChangeIndex,
                 Color = action.Color,
                 XIndex = action.XIndex,
                 YIndex = action.YIndex
-            }));
+            });
 
             return State.ChangeIndex;
+        }
+        
+        public Task OnCompletedAsync()
+        {
+            _logger.LogInformation("Complete chunk update message was received.");
+            return Task.CompletedTask;
+        }
+
+        public Task OnErrorAsync(Exception ex)
+        {
+            _logger.LogError(ex, "Error during getting chunk update.");
+            return Task.CompletedTask;
+        }
+
+        public async Task OnNextAsync(ChunkAction action, StreamSequenceToken token = null)
+        {
+            State.ChangeIndex++;
+            _pixelsCache[action.XIndex + action.YIndex * _chunkWidth].Rgba = action.Color;
+            State.Image = _imageProcessor.GetBytesFromPixels(_pixelsCache, _chunkHeight, _chunkWidth);
+
+            await WriteStateAsync();
+
+            await _chunkUpdateEventStream.OnNextAsync(new ChunkUpdate
+            {
+                ChangeIndex = State.ChangeIndex,
+                Color = action.Color,
+                XIndex = action.XIndex,
+                YIndex = action.YIndex
+            });
         }
     }
 }
