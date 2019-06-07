@@ -1,5 +1,6 @@
 ﻿using Orleans.Hosting;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PixelBattles.Chunkler.Hosting
@@ -15,8 +16,6 @@ namespace PixelBattles.Chunkler.Hosting
                 Console.ReadLine();
 
                 await host.StopAsync();
-
-                return;
             }
             catch (Exception ex)
             {
@@ -25,13 +24,13 @@ namespace PixelBattles.Chunkler.Hosting
             }
         }
 
-        private static async Task<ISiloHost> StartSilo()
+        private static async Task<ISiloHost> StartSilo(CancellationToken cancellationToken = default)
         {
             var builder = new SiloHostBuilder()
                 .ConfigureDefaultHost();
 
             var host = builder.Build();
-            await host.StartAsync();
+            await host.StartAsync(cancellationToken);
             return host;
         }
     }

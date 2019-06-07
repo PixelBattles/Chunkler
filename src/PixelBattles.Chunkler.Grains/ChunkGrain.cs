@@ -4,6 +4,7 @@ using Orleans.Providers;
 using Orleans.Streams;
 using PixelBattles.API.Client;
 using PixelBattles.API.DataTransfer.Battle;
+using PixelBattles.Chunkler.Abstractions;
 using PixelBattles.Chunkler.Grains.ImageProcessing;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
@@ -11,8 +12,8 @@ using System.Threading.Tasks;
 
 namespace PixelBattles.Chunkler.Grains
 {
-    [StorageProvider(ProviderName = "MongoDBGrainStorage")]
-    [ImplicitStreamSubscription("action")]
+    [StorageProvider(ProviderName = ChunklerConstants.MongoDBGrainStorage)]
+    [ImplicitStreamSubscription(ChunklerConstants.IncomingAction)]
     public class ChunkGrain : Grain<ChunkGrainState>, IChunkGrain, IAsyncObserver<ChunkAction>
     {
         private readonly ILogger _logger;
@@ -24,8 +25,8 @@ namespace PixelBattles.Chunkler.Grains
         private Rgba32[] _pixelsCache;
         private Guid _chunkKey;
         private long _battleId;
-        private int _xChunk;
-        private int _yChunk;
+        private int _xChunkIndex;
+        private int _yChunkIndex;
         
         private IAsyncStream<ChunkUpdate> _chunkUpdateEventStream;
         private IAsyncStream<ChunkAction> _chunkActionEventStream;
@@ -45,7 +46,8 @@ namespace PixelBattles.Chunkler.Grains
             await base.ReadStateAsync();
 
             _chunkKey = this.GetPrimaryKey();
-            (_battleId, _xChunk, _yChunk) = GuidExtensions.ToKeys(_chunkKey);
+            (_battleId, _xChunkIndex, _yChunkIndex) = GuidExtensions.ToKeys(_chunkKey);
+
             BattleDTO battle = await _apiClient.GetBattleAsync(_battleId);
             _chunkWidth = battle.Settings.ChunkWidth;
             _chunkHeight = battle.Settings.ChunkHeight;
@@ -65,9 +67,9 @@ namespace PixelBattles.Chunkler.Grains
 
         public override async Task OnActivateAsync()
         {
-            var streamProvider = GetStreamProvider("SimpleChunkStreamProvider");
-            _chunkUpdateEventStream = streamProvider.GetStream<ChunkUpdate>(_chunkKey, "update");
-            _chunkActionEventStream = streamProvider.GetStream<ChunkAction>(_chunkKey, "action");
+            var streamProvider = GetStreamProvider(ChunklerConstants.SimpleChunkStreamProvider);
+            _chunkUpdateEventStream = streamProvider.GetStream<ChunkUpdate>(_chunkKey, ChunklerConstants.OutcomingUpdate);
+            _chunkActionEventStream = streamProvider.GetStream<ChunkAction>(_chunkKey, ChunklerConstants.IncomingAction);
             await _chunkActionEventStream.SubscribeAsync(this);
             await base.OnActivateAsync();
         }

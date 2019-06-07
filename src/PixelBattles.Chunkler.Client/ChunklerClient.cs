@@ -3,6 +3,7 @@ using Orleans;
 using Orleans.Configuration;
 using Orleans.Hosting;
 using Orleans.Streams;
+using PixelBattles.Chunkler.Abstractions;
 using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
@@ -29,11 +30,11 @@ namespace PixelBattles.Chunkler.Client
                     cfg.ClusterId = options.ClusterOptions.ClusterId;
                     cfg.ServiceId = options.ClusterOptions.ServiceId;
                 })
-                .AddSimpleMessageStreamProvider("SimpleChunkStreamProvider")
+                .AddSimpleMessageStreamProvider(ChunklerConstants.SimpleChunkStreamProvider)
                 .Build();
 
             _clusterClient.Connect().Wait();
-            _streamProvider = _clusterClient.GetStreamProvider("SimpleChunkStreamProvider");
+            _streamProvider = _clusterClient.GetStreamProvider(ChunklerConstants.SimpleChunkStreamProvider);
             _streamSubscriptionHandles = new ConcurrentDictionary<ChunkKey, StreamSubscriptionHandle<ChunkUpdate>>();
         }
         
@@ -45,7 +46,7 @@ namespace PixelBattles.Chunkler.Client
         
         public async Task SubscribeOnUpdateAsync(ChunkKey key, Action<ChunkUpdate> onUpdate)
         {
-            var stream = _streamProvider.GetStream<ChunkUpdate>(FormatChunkKey(key), "update");
+            var stream = _streamProvider.GetStream<ChunkUpdate>(FormatChunkKey(key), ChunklerConstants.OutcomingUpdate);
             var handler = await stream.SubscribeAsync(new ChunkObserver(_logger, onUpdate));
             _streamSubscriptionHandles.TryAdd(key, handler);
         }
@@ -66,7 +67,7 @@ namespace PixelBattles.Chunkler.Client
 
         public async Task EnqueueActionAsync(ChunkKey key, ChunkAction action)
         {
-            var stream =_streamProvider.GetStream<ChunkAction>(FormatChunkKey(key), "action");
+            var stream =_streamProvider.GetStream<ChunkAction>(FormatChunkKey(key), ChunklerConstants.IncomingAction);
             await stream.OnNextAsync(action);
         }
 
