@@ -1,17 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
     <AssemblyName>PixelBattles.Chunkler.Hosting.Console</AssemblyName>
     <RootNamespace>PixelBattles.Chunkler.Hosting</RootNamespace>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
@@ -27,7 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PixelBattles.Chunkler.Grains\PixelBattles.Chunkler.Grains.csproj" />
-	<ProjectReference Include="..\PixelBattles.Chunkler.Abstractions\PixelBattles.Chunkler.Abstractions.csproj" />
+	  <ProjectReference Include="..\PixelBattles.Chunkler.Abstractions\PixelBattles.Chunkler.Abstractions.csproj" />
   </ItemGroup>
 
   <ItemGroup>
