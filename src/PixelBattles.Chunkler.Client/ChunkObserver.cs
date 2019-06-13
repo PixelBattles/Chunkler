@@ -8,12 +8,12 @@ namespace PixelBattles.Chunkler.Client
     public class ChunkObserver : IAsyncObserver<ChunkUpdate>
     {
         private ILogger _logger;
-        private Action<ChunkUpdate> _action;
+        private Func<ChunkUpdate, Task> _onUpdate;
 
-        public ChunkObserver(ILogger logger, Action<ChunkUpdate> action)
+        public ChunkObserver(ILogger logger, Func<ChunkUpdate, Task> onUpdate)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _action = action ?? throw new ArgumentNullException(nameof(action));
+            _onUpdate = onUpdate ?? throw new ArgumentNullException(nameof(onUpdate));
         }
         
         public Task OnCompletedAsync()
@@ -26,10 +26,9 @@ namespace PixelBattles.Chunkler.Client
             return Task.CompletedTask;
         }
 
-        public Task OnNextAsync(ChunkUpdate item, StreamSequenceToken token = null)
+        public async Task OnNextAsync(ChunkUpdate item, StreamSequenceToken token = null)
         {
-            _action.Invoke(item);
-            return Task.CompletedTask;
+            await _onUpdate.Invoke(item);
         }
     }
 }

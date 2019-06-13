@@ -8,7 +8,7 @@ namespace PixelBattles.Chunkler.Client
         Task<int> ProcessActionAsync(ChunkKey key, ChunkAction action);
         Task EnqueueActionAsync(ChunkKey key, ChunkAction action);
         Task<ChunkState> GetChunkStateAsync(ChunkKey key);
-        Task SubscribeOnUpdateAsync(ChunkKey key, Action<ChunkUpdate> onUpdate);
+        Task SubscribeOnUpdateAsync(ChunkKey key, Func<ChunkUpdate, Task> onUpdate);
         Task UnsubscribeOnUpdateAsync(ChunkKey key);
     }
 }

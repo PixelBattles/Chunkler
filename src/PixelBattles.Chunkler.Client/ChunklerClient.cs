@@ -44,7 +44,7 @@ namespace PixelBattles.Chunkler.Client
             return chunk.GetStateAsync();
         }
         
-        public async Task SubscribeOnUpdateAsync(ChunkKey key, Action<ChunkUpdate> onUpdate)
+        public async Task SubscribeOnUpdateAsync(ChunkKey key, Func<ChunkUpdate, Task> onUpdate)
         {
             var stream = _streamProvider.GetStream<ChunkUpdate>(FormatChunkKey(key), ChunklerConstants.OutcomingUpdate);
             var handler = await stream.SubscribeAsync(new ChunkObserver(_logger, onUpdate));
