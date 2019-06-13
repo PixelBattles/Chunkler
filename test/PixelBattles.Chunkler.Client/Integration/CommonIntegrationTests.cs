@@ -55,6 +55,7 @@ namespace PixelBattles.Chunkler.Client.Tests
             {
                 update = chunkUpdate;
                 taskCompletionSource.SetResult(new object());
+                return Task.CompletedTask;
             });
             var action = new ChunkAction() { Color = 0, XIndex = 0, YIndex = 0 };
             var changeIndex = await ChunklerClient.ProcessActionAsync(ActiveBattleChunkKey, action);
@@ -78,6 +79,7 @@ namespace PixelBattles.Chunkler.Client.Tests
             {
                 update = chunkUpdate;
                 taskCompletionSource.SetResult(new object());
+                return Task.CompletedTask;
             });
             await ChunklerClient.UnsubscribeOnUpdateAsync(ActiveBattleChunkKey);
             var action = new ChunkAction() { Color = 0, XIndex = 0, YIndex = 0 };
@@ -98,6 +100,7 @@ namespace PixelBattles.Chunkler.Client.Tests
             {
                 update = chunkUpdate;
                 taskCompletionSource.SetResult(new object());
+                return Task.CompletedTask;
             });
             var action = new ChunkAction() { Color = 0, XIndex = 0, YIndex = 0 };
             await ChunklerClient.EnqueueActionAsync(ActiveBattleChunkKey, action);
