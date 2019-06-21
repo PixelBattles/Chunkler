@@ -6,7 +6,7 @@
         public const string PubSubStore = "PubSubStore";
         public const string SimpleChunkStreamProvider = "SimpleChunkStreamProvider";
 
-        public const string IncomingAction = "IncomingAction";
-        public const string OutcomingUpdate = "OutcomingUpdate";
+        public const string ChunkIncomingAction = "ChunkIncomingAction";
+        public const string ChunkOutcomingUpdate = "ChunkOutcomingUpdate";
     }
 }

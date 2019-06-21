@@ -3,7 +3,6 @@ using Orleans;
 using Orleans.Providers;
 using Orleans.Streams;
 using PixelBattles.API.Client;
-using PixelBattles.API.DataTransfer.Battle;
 using PixelBattles.Chunkler.Abstractions;
 using PixelBattles.Chunkler.Grains.ImageProcessing;
 using SixLabors.ImageSharp.PixelFormats;
@@ -13,7 +12,7 @@ using System.Threading.Tasks;
 namespace PixelBattles.Chunkler.Grains
 {
     [StorageProvider(ProviderName = ChunklerConstants.MongoDBGrainStorage)]
-    [ImplicitStreamSubscription(ChunklerConstants.IncomingAction)]
+    [ImplicitStreamSubscription(ChunklerConstants.ChunkIncomingAction)]
     public class ChunkGrain : Grain<ChunkGrainState>, IChunkGrain, IAsyncObserver<ChunkAction>
     {
         private readonly ILogger _logger;
@@ -48,7 +47,7 @@ namespace PixelBattles.Chunkler.Grains
             _chunkKey = this.GetPrimaryKey();
             (_battleId, _xChunkIndex, _yChunkIndex) = GuidExtensions.ToKeys(_chunkKey);
 
-            BattleDTO battle = await _apiClient.GetBattleAsync(_battleId);
+            var battle = await _apiClient.GetBattleAsync(_battleId);
             _chunkWidth = battle.Settings.ChunkWidth;
             _chunkHeight = battle.Settings.ChunkHeight;
 
@@ -68,12 +67,12 @@ namespace PixelBattles.Chunkler.Grains
         public override async Task OnActivateAsync()
         {
             var streamProvider = GetStreamProvider(ChunklerConstants.SimpleChunkStreamProvider);
-            _chunkUpdateEventStream = streamProvider.GetStream<ChunkUpdate>(_chunkKey, ChunklerConstants.OutcomingUpdate);
-            _chunkActionEventStream = streamProvider.GetStream<ChunkAction>(_chunkKey, ChunklerConstants.IncomingAction);
+            _chunkUpdateEventStream = streamProvider.GetStream<ChunkUpdate>(_chunkKey, ChunklerConstants.ChunkOutcomingUpdate);
+            _chunkActionEventStream = streamProvider.GetStream<ChunkAction>(_chunkKey, ChunklerConstants.ChunkIncomingAction);
             await _chunkActionEventStream.SubscribeAsync(this);
             await base.OnActivateAsync();
         }
-
+        
         protected override Task ClearStateAsync()
         {
             State.Image = null;

@@ -46,7 +46,7 @@ namespace PixelBattles.Chunkler.Client
         
         public async Task SubscribeOnUpdateAsync(ChunkKey key, Func<ChunkUpdate, Task> onUpdate)
         {
-            var stream = _streamProvider.GetStream<ChunkUpdate>(FormatChunkKey(key), ChunklerConstants.OutcomingUpdate);
+            var stream = _streamProvider.GetStream<ChunkUpdate>(FormatChunkKey(key), ChunklerConstants.ChunkOutcomingUpdate);
             var handler = await stream.SubscribeAsync(new ChunkObserver(_logger, onUpdate));
             _streamSubscriptionHandles.TryAdd(key, handler);
         }
@@ -67,7 +67,7 @@ namespace PixelBattles.Chunkler.Client
 
         public async Task EnqueueActionAsync(ChunkKey key, ChunkAction action)
         {
-            var stream =_streamProvider.GetStream<ChunkAction>(FormatChunkKey(key), ChunklerConstants.IncomingAction);
+            var stream =_streamProvider.GetStream<ChunkAction>(FormatChunkKey(key), ChunklerConstants.ChunkIncomingAction);
             await stream.OnNextAsync(action);
         }
 

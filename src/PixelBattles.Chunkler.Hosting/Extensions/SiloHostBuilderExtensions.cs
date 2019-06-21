@@ -40,8 +40,10 @@ namespace PixelBattles.Chunkler.Hosting
                     services.Configure<MongoDBGrainStorageOptions>(ChunklerConstants.MongoDBGrainStorage, context.Configuration.GetSection(nameof(MongoDBGrainStorageOptions)));
                     services.Configure<ClusterOptions>(context.Configuration.GetSection(nameof(ClusterOptions)));
                     services.Configure<ApiClientOptions>(context.Configuration.GetSection(nameof(ApiClientOptions)));
+                    services.Configure<MongoDBRemindersOptions>(context.Configuration.GetSection(nameof(MongoDBRemindersOptions)));
                 })
                 .UseMongoDBClustering()
+                .UseMongoDBReminders()
                 .AddMongoDBGrainStorage(ChunklerConstants.MongoDBGrainStorage)
                 .AddMemoryGrainStorage(ChunklerConstants.PubSubStore)
                 .AddSimpleMessageStreamProvider(ChunklerConstants.SimpleChunkStreamProvider)

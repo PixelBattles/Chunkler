@@ -1,6 +1,9 @@
+using HashDepot;
 using PixelBattles.Chunkler.Grains.ImageProcessing;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
+using System.Collections.Generic;
+using System.IO;
 using Xunit;
 
 namespace PixelBattles.Chunkler.Grains.Tests
@@ -64,6 +67,20 @@ namespace PixelBattles.Chunkler.Grains.Tests
             var resultImage = _imageProcessor.GetPixelsFromBytes(serializedImage, 2, 3);
 
             Assert.True(AreSame(originalImage, resultImage));
+        }
+
+        [Fact]
+        public void ImageProcessor_Can_GenerateImageFromChunks()
+        {
+            var image = _imageProcessor.GetBytesFromPixels(_imageProcessor.GetDefaultImage(100, 100, 4278190080), 100, 100);
+            var chunks = new List<(int x, int y, byte[] image)>
+            {
+                (0, 0, image),
+                (1, 0, image),
+                (2, 0, image)
+            };
+            var previewImage = _imageProcessor.GenerateImageFromChunks(chunks, 100, 100, 100, 150, 100, 50);
+            Assert.Equal(45613623U, XXHash.Hash32(previewImage));
         }
 
         private bool AreSame(Rgba32[] expected, Rgba32[] actual)
