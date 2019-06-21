@@ -28,7 +28,7 @@ namespace PixelBattles.Chunkler.Client.Tests
         public async Task ChunklerClient_Can_ProcessAction()
         {
             var currentState = await ChunklerClient.GetChunkStateAsync(ActiveBattleChunkKey);
-            var changeIndex = await ChunklerClient.ProcessActionAsync(ActiveBattleChunkKey, new ChunkAction() { Color = 0, XIndex = 0, YIndex = 0 });
+            var changeIndex = await ChunklerClient.ProcessChunkActionAsync(ActiveBattleChunkKey, new ChunkAction() { Color = 0, XIndex = 0, YIndex = 0 });
 
             Assert.NotEqual(changeIndex, currentState.ChangeIndex);
         }
@@ -38,7 +38,7 @@ namespace PixelBattles.Chunkler.Client.Tests
         public async Task ChunklerClient_Can_ProcessAction_And_StateUpdated()
         {
             var currentState = await ChunklerClient.GetChunkStateAsync(ActiveBattleChunkKey);
-            var changeIndex = await ChunklerClient.ProcessActionAsync(ActiveBattleChunkKey, new ChunkAction() { Color = 0, XIndex = 0, YIndex = 0 });
+            var changeIndex = await ChunklerClient.ProcessChunkActionAsync(ActiveBattleChunkKey, new ChunkAction() { Color = 0, XIndex = 0, YIndex = 0 });
             var newState = await ChunklerClient.GetChunkStateAsync(ActiveBattleChunkKey);
 
             Assert.Equal(changeIndex, newState.ChangeIndex);
@@ -51,14 +51,14 @@ namespace PixelBattles.Chunkler.Client.Tests
         {
             var taskCompletionSource = new TaskCompletionSource<object>();
             ChunkUpdate update = null;
-            await ChunklerClient.SubscribeOnUpdateAsync(ActiveBattleChunkKey, chunkUpdate =>
+            await ChunklerClient.SubscribeOnChunkUpdateAsync(ActiveBattleChunkKey, chunkUpdate =>
             {
                 update = chunkUpdate;
                 taskCompletionSource.SetResult(new object());
                 return Task.CompletedTask;
             });
             var action = new ChunkAction() { Color = 0, XIndex = 0, YIndex = 0 };
-            var changeIndex = await ChunklerClient.ProcessActionAsync(ActiveBattleChunkKey, action);
+            var changeIndex = await ChunklerClient.ProcessChunkActionAsync(ActiveBattleChunkKey, action);
 
             await Task.WhenAny(taskCompletionSource.Task, Task.Delay(10000));
 
@@ -75,15 +75,15 @@ namespace PixelBattles.Chunkler.Client.Tests
         {
             var taskCompletionSource = new TaskCompletionSource<object>();
             ChunkUpdate update = null;
-            await ChunklerClient.SubscribeOnUpdateAsync(ActiveBattleChunkKey, chunkUpdate =>
+            await ChunklerClient.SubscribeOnChunkUpdateAsync(ActiveBattleChunkKey, chunkUpdate =>
             {
                 update = chunkUpdate;
                 taskCompletionSource.SetResult(new object());
                 return Task.CompletedTask;
             });
-            await ChunklerClient.UnsubscribeOnUpdateAsync(ActiveBattleChunkKey);
+            await ChunklerClient.UnsubscribeOnChunkUpdateAsync(ActiveBattleChunkKey);
             var action = new ChunkAction() { Color = 0, XIndex = 0, YIndex = 0 };
-            var changeIndex = await ChunklerClient.ProcessActionAsync(ActiveBattleChunkKey, action);
+            var changeIndex = await ChunklerClient.ProcessChunkActionAsync(ActiveBattleChunkKey, action);
 
             await Task.WhenAny(taskCompletionSource.Task, Task.Delay(1000));
 
@@ -96,14 +96,14 @@ namespace PixelBattles.Chunkler.Client.Tests
         {
             var taskCompletionSource = new TaskCompletionSource<object>();
             ChunkUpdate update = null;
-            await ChunklerClient.SubscribeOnUpdateAsync(ActiveBattleChunkKey, chunkUpdate =>
+            await ChunklerClient.SubscribeOnChunkUpdateAsync(ActiveBattleChunkKey, chunkUpdate =>
             {
                 update = chunkUpdate;
                 taskCompletionSource.SetResult(new object());
                 return Task.CompletedTask;
             });
             var action = new ChunkAction() { Color = 0, XIndex = 0, YIndex = 0 };
-            await ChunklerClient.EnqueueActionAsync(ActiveBattleChunkKey, action);
+            await ChunklerClient.EnqueueChunkActionAsync(ActiveBattleChunkKey, action);
 
             await Task.WhenAny(taskCompletionSource.Task, Task.Delay(10000));
 

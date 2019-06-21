@@ -44,14 +44,14 @@ namespace PixelBattles.Chunkler.Client
             return chunk.GetStateAsync();
         }
         
-        public async Task SubscribeOnUpdateAsync(ChunkKey key, Func<ChunkUpdate, Task> onUpdate)
+        public async Task SubscribeOnChunkUpdateAsync(ChunkKey key, Func<ChunkUpdate, Task> onUpdate)
         {
             var stream = _streamProvider.GetStream<ChunkUpdate>(FormatChunkKey(key), ChunklerConstants.ChunkOutcomingUpdate);
             var handler = await stream.SubscribeAsync(new ChunkObserver(_logger, onUpdate));
             _streamSubscriptionHandles.TryAdd(key, handler);
         }
 
-        public async Task UnsubscribeOnUpdateAsync(ChunkKey key)
+        public async Task UnsubscribeOnChunkUpdateAsync(ChunkKey key)
         {
             if (_streamSubscriptionHandles.TryRemove(key, out var value))
             {
@@ -59,13 +59,13 @@ namespace PixelBattles.Chunkler.Client
             }
         }
 
-        public Task<int> ProcessActionAsync(ChunkKey key, ChunkAction action)
+        public Task<int> ProcessChunkActionAsync(ChunkKey key, ChunkAction action)
         {
             var chunk = _clusterClient.GetGrain<IChunkGrain>(FormatChunkKey(key));
             return chunk.ProcessActionAsync(action);
         }
 
-        public async Task EnqueueActionAsync(ChunkKey key, ChunkAction action)
+        public async Task EnqueueChunkActionAsync(ChunkKey key, ChunkAction action)
         {
             var stream =_streamProvider.GetStream<ChunkAction>(FormatChunkKey(key), ChunklerConstants.ChunkIncomingAction);
             await stream.OnNextAsync(action);
@@ -79,6 +79,12 @@ namespace PixelBattles.Chunkler.Client
         public void Dispose()
         {
             _clusterClient.Close().Wait();
+        }
+
+        public Task ActivateBattleReminder(long battleId, TimeSpan refreshInterval)
+        {
+            var chunk = _clusterClient.GetGrain<IBattleGrain>(battleId);
+            return chunk.ActivateBattleReminderAsync(refreshInterval);
         }
     }
 }

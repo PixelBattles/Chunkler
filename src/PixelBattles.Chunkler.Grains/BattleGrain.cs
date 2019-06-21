@@ -4,6 +4,7 @@ using Orleans.Providers;
 using Orleans.Runtime;
 using PixelBattles.API.Client;
 using PixelBattles.API.DataTransfer.Battles;
+using PixelBattles.API.DataTransfer.Images;
 using PixelBattles.Chunkler.Abstractions;
 using PixelBattles.Chunkler.Grains.ImageProcessing;
 using System;
@@ -15,6 +16,8 @@ namespace PixelBattles.Chunkler.Grains
     [StorageProvider(ProviderName = ChunklerConstants.MongoDBGrainStorage)]
     public class BattleGrain : Grain<BattleGrainState>, IBattleGrain
     {
+        private const string PreviewReminder = "BattlePreviewReminder";
+
         private readonly ILogger _logger;
         private readonly IApiClient _apiClient;
         private readonly IImageProcessor _imageProcessor;
@@ -92,9 +95,63 @@ namespace PixelBattles.Chunkler.Grains
                 centerY: centerY);
         }
 
-        public Task ReceiveReminder(string reminderName, TickStatus status)
+        private async Task UpdatePreviewImageAsync()
         {
-            throw new NotImplementedException();
+            try
+            {
+                var image = await GenerateBattlePreviewAsync();
+                if (_battle.ImageId == null)
+                {
+                    var imageResult = await _apiClient.CreateImageAsync(new CreateImageDTO
+                    {
+                        Name = $"{_battleId} battle preview image.",
+                        Description = $"This is {_battleId} battle preview image."
+                    }, image, "preview.png", "image/png");
+                    if (!imageResult.Succeeded)
+                    {
+                        return;
+                    }
+                    var battleResult = await _apiClient.UpdateBattleImageAsync(_battleId, new UpdateBattleImageDTO
+                    {
+                        ImageId = imageResult.ImageId.Value
+                    });
+                    if (!imageResult.Succeeded)
+                    {
+                        return;
+                    }
+                    _battle.ImageId = imageResult.ImageId.Value;
+                }
+                else
+                {
+                    var imageResult = await _apiClient.UpdateImageAsync(_battle.ImageId.Value, new UpdateImageDTO
+                    {
+                        Name = $"{_battleId} battle preview image.",
+                        Description = $"This is {_battleId} battle preview image."
+                    }, image, "preview.png", "image/png");
+                    if (!imageResult.Succeeded)
+                    {
+                        return;
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, $"Failed to update {_battleId} battle preview image.");
+            }
+            
+        }
+        
+        public async Task ActivateBattleReminderAsync(TimeSpan refreshInterval)
+        {
+            await RegisterOrUpdateReminder(PreviewReminder, _battle.EndDateUTC - DateTime.UtcNow + refreshInterval, refreshInterval);
+        }
+
+        public async Task ReceiveReminder(string reminderName, TickStatus status)
+        {
+            if (reminderName == PreviewReminder)
+            {
+                await UpdatePreviewImageAsync();
+            }
         }
     }
 }
