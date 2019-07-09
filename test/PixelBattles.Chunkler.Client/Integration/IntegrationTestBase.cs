@@ -44,9 +44,9 @@ namespace PixelBattles.Chunkler.Client.Tests
 
         public void Dispose()
         {
-            //ChunklerClient.Close().Wait();
-            //Host.StopAsync().Wait();
-            //Host.Dispose();
+            ChunklerClient.Dispose();
+            Host.StopAsync().Wait();
+            Host.Dispose();
         }
     }
 }

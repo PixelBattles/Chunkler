@@ -35,7 +35,6 @@ namespace PixelBattles.Chunkler.Client
 
             _clusterClient.Connect().Wait();
             _streamProvider = _clusterClient.GetStreamProvider(ChunklerConstants.SimpleChunkStreamProvider);
-            _streamSubscriptionHandles = new ConcurrentDictionary<ChunkKey, StreamSubscriptionHandle<ChunkUpdate>>();
         }
         
         public Task<ChunkState> GetChunkStateAsync(ChunkKey key)
@@ -44,21 +43,13 @@ namespace PixelBattles.Chunkler.Client
             return chunk.GetStateAsync();
         }
         
-        public async Task SubscribeOnChunkUpdateAsync(ChunkKey key, Func<ChunkUpdate, Task> onUpdate)
+        public async Task<IChunkSubscription> SubscribeOnChunkUpdateAsync(ChunkKey key, Func<ChunkUpdate, Task> onUpdate)
         {
             var stream = _streamProvider.GetStream<ChunkUpdate>(FormatChunkKey(key), ChunklerConstants.ChunkOutcomingUpdate);
             var handler = await stream.SubscribeAsync(new ChunkObserver(_logger, onUpdate));
-            _streamSubscriptionHandles.TryAdd(key, handler);
+            return new ChunkSubscription(handler);
         }
-
-        public async Task UnsubscribeOnChunkUpdateAsync(ChunkKey key)
-        {
-            if (_streamSubscriptionHandles.TryRemove(key, out var value))
-            {
-                await value.UnsubscribeAsync();
-            }
-        }
-
+        
         public Task<int> ProcessChunkActionAsync(ChunkKey key, ChunkAction action)
         {
             var chunk = _clusterClient.GetGrain<IChunkGrain>(FormatChunkKey(key));

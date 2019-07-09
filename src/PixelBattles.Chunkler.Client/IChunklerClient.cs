@@ -8,8 +8,7 @@ namespace PixelBattles.Chunkler.Client
         Task<int> ProcessChunkActionAsync(ChunkKey key, ChunkAction action);
         Task EnqueueChunkActionAsync(ChunkKey key, ChunkAction action);
         Task<ChunkState> GetChunkStateAsync(ChunkKey key);
-        Task SubscribeOnChunkUpdateAsync(ChunkKey key, Func<ChunkUpdate, Task> onUpdate);
-        Task UnsubscribeOnChunkUpdateAsync(ChunkKey key);
+        Task<IChunkSubscription> SubscribeOnChunkUpdateAsync(ChunkKey key, Func<ChunkUpdate, Task> onUpdate);
         Task ActivateBattleReminder(long battleId, TimeSpan refreshInterval);
     }
 }

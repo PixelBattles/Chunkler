@@ -69,19 +69,89 @@ namespace PixelBattles.Chunkler.Client.Tests
             Assert.Equal(action.Color, update.Color);
         }
 
+        [Trait("Category", "Integration")]
+        public async Task ChunklerClient_CanHandle_SeveralSubscribeUpdates()
+        {
+            var firstTaskCompletionSource = new TaskCompletionSource<object>();
+            ChunkUpdate firstUpdate = null;
+            var secondTaskCompletionSource = new TaskCompletionSource<object>();
+            ChunkUpdate secondUpdate = null;
+
+            await ChunklerClient.SubscribeOnChunkUpdateAsync(ActiveBattleChunkKey, chunkUpdate =>
+            {
+                firstUpdate = chunkUpdate;
+                firstTaskCompletionSource.SetResult(new object());
+                return Task.CompletedTask;
+            });
+
+            await ChunklerClient.SubscribeOnChunkUpdateAsync(ActiveBattleChunkKey, chunkUpdate =>
+            {
+                secondUpdate = chunkUpdate;
+                secondTaskCompletionSource.SetResult(new object());
+                return Task.CompletedTask;
+            });
+
+            var action = new ChunkAction() { Color = 0, XIndex = 0, YIndex = 0 };
+            var changeIndex = await ChunklerClient.ProcessChunkActionAsync(ActiveBattleChunkKey, action);
+
+            await Task.WhenAny(Task.WhenAll(firstTaskCompletionSource.Task, secondTaskCompletionSource.Task), Task.Delay(10000));
+
+            Assert.NotNull(firstUpdate);
+            Assert.Equal(changeIndex, firstUpdate.ChangeIndex);
+            Assert.Equal(action.XIndex, firstUpdate.XIndex);
+            Assert.Equal(action.YIndex, firstUpdate.YIndex);
+            Assert.Equal(action.Color, firstUpdate.Color);
+
+            Assert.NotNull(secondUpdate);
+            Assert.Equal(changeIndex, secondUpdate.ChangeIndex);
+            Assert.Equal(action.XIndex, secondUpdate.XIndex);
+            Assert.Equal(action.YIndex, secondUpdate.YIndex);
+            Assert.Equal(action.Color, secondUpdate.Color);
+        }
+
+        [Trait("Category", "Integration")]
+        public async Task ChunklerClient_CanHandle_UnsubscribeAfterSeveralSubscribes()
+        {
+            var firstTaskCompletionSource = new TaskCompletionSource<object>();
+            var secondTaskCompletionSource = new TaskCompletionSource<object>();
+
+            var subscription = await ChunklerClient.SubscribeOnChunkUpdateAsync(ActiveBattleChunkKey, chunkUpdate =>
+            {
+                firstTaskCompletionSource.SetResult(new object());
+                return Task.CompletedTask;
+            });
+
+            await ChunklerClient.SubscribeOnChunkUpdateAsync(ActiveBattleChunkKey, chunkUpdate =>
+            {
+                secondTaskCompletionSource.SetResult(new object());
+                return Task.CompletedTask;
+            });
+
+            await subscription.CloseAsync();
+
+            var action = new ChunkAction() { Color = 0, XIndex = 0, YIndex = 0 };
+            var changeIndex = await ChunklerClient.ProcessChunkActionAsync(ActiveBattleChunkKey, action);
+
+            await Task.WhenAny(Task.WhenAll(firstTaskCompletionSource.Task, secondTaskCompletionSource.Task), Task.Delay(1000));
+
+
+            Assert.False(firstTaskCompletionSource.Task.IsCompleted);
+            Assert.True(secondTaskCompletionSource.Task.IsCompleted);
+        }
+
         [Fact]
         [Trait("Category", "Integration")]
         public async Task ChunklerClient_CanHandle_UnsubscribeUpdates()
         {
             var taskCompletionSource = new TaskCompletionSource<object>();
             ChunkUpdate update = null;
-            await ChunklerClient.SubscribeOnChunkUpdateAsync(ActiveBattleChunkKey, chunkUpdate =>
+            var subscription = await ChunklerClient.SubscribeOnChunkUpdateAsync(ActiveBattleChunkKey, chunkUpdate =>
             {
                 update = chunkUpdate;
                 taskCompletionSource.SetResult(new object());
                 return Task.CompletedTask;
             });
-            await ChunklerClient.UnsubscribeOnChunkUpdateAsync(ActiveBattleChunkKey);
+            await subscription.CloseAsync();
             var action = new ChunkAction() { Color = 0, XIndex = 0, YIndex = 0 };
             var changeIndex = await ChunklerClient.ProcessChunkActionAsync(ActiveBattleChunkKey, action);
 
@@ -96,7 +166,7 @@ namespace PixelBattles.Chunkler.Client.Tests
         {
             var taskCompletionSource = new TaskCompletionSource<object>();
             ChunkUpdate update = null;
-            await ChunklerClient.SubscribeOnChunkUpdateAsync(ActiveBattleChunkKey, chunkUpdate =>
+            var subscription = await ChunklerClient.SubscribeOnChunkUpdateAsync(ActiveBattleChunkKey, chunkUpdate =>
             {
                 update = chunkUpdate;
                 taskCompletionSource.SetResult(new object());
@@ -106,11 +176,12 @@ namespace PixelBattles.Chunkler.Client.Tests
             await ChunklerClient.EnqueueChunkActionAsync(ActiveBattleChunkKey, action);
 
             await Task.WhenAny(taskCompletionSource.Task, Task.Delay(10000));
+            subscription.CloseAsync();
 
             Assert.NotNull(update);
             Assert.Equal(action.XIndex, update.XIndex);
             Assert.Equal(action.YIndex, update.YIndex);
-            Assert.Equal(action.Color, update.Color);
+            Assert.Equal(action.Color, update.Color);            
         }
     }
 }
